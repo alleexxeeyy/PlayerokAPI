@@ -106,9 +106,9 @@ class ItemPaidEvent(BaseEvent):
     :param deal_obj: Объект сделки.
     :type deal_obj: `PlayerokAPI.types.Item`
     """
-    def __init__(self, deal_obj: types.Item):
+    def __init__(self, deal_obj: types.ItemDeal):
         super(ItemPaidEvent, self).__init__(EventTypes.ITEM_PAID)
-        self.deal: types.Item = deal_obj
+        self.deal: types.ItemDeal = deal_obj
         """ Объект сделки. """
 
 class ItemSentEvent(BaseEvent):
@@ -118,7 +118,7 @@ class ItemSentEvent(BaseEvent):
     :param deal_obj: Объект сделки.
     :type deal_obj: `PlayerokAPI.types.Item`
     """
-    def __init__(self, deal_obj: types.Item):
+    def __init__(self, deal_obj: types.ItemDeal):
         super(ItemSentEvent, self).__init__(EventTypes.ITEM_SENT)
-        self.deal: types.Item = deal_obj
+        self.deal: types.ItemDeal = deal_obj
         """ Объект Сделки. """
