@@ -1,5 +1,5 @@
 Аккаунт
 =======
 
-.. automodule:: PlayerokAPI.account
+.. automodule:: playerokapi.account
    :members:

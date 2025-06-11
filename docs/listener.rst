@@ -1,5 +1,5 @@
 Слушатель событий
 =================
 
-.. automodule:: PlayerokAPI.listener.listener
+.. automodule:: playerokapi.listener.listener
    :members:

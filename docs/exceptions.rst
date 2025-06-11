@@ -1,5 +1,5 @@
 Исключения
 ==========
 
-.. automodule:: PlayerokAPI.exceptions
+.. automodule:: playerokapi.exceptions
    :members:

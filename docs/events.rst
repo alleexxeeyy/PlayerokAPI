@@ -1,5 +1,5 @@
 События
 =======
 
-.. automodule:: PlayerokAPI.listener.events
+.. automodule:: playerokapi.listener.events
    :members:

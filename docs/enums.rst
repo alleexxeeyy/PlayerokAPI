@@ -1,5 +1,5 @@
 Enums
 =======
 
-.. automodule:: PlayerokAPI.enums
+.. automodule:: playerokapi.enums
    :members:
