@@ -115,4 +115,5 @@ new_item = acc.publish_item(item.id, free_status) # выставляем пре�
 
 ## Ссылки
 Разработчик: https://github.com/alleexxeeyy (в профиле есть актуальные ссылки на все контакты для связи)
+
 Telegram канал: https://t.me/alexeyproduction
