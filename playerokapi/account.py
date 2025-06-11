@@ -337,8 +337,8 @@ class Account:
         Получает игру/приложение.\n
         Можно получить по любому из двух параметров:
 
-        :param slug: ID игры/приложения, _опционально_.
-        :type slug: `str` or `None`
+        :param id: ID игры/приложения, _опционально_.
+        :type id: `str` or `None`
 
         :param slug: Имя страницы игры/приложения, _опционально_.
         :type slug: `str` or `None`

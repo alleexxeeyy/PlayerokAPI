@@ -27,10 +27,12 @@
    :maxdepth: 3
 
    account
+   
+.. toctree:: 
    :maxdepth: 2
+
    types
    enums
    exceptions
-
    listener
    events
