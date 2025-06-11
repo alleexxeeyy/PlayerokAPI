@@ -113,7 +113,7 @@ class EventListener:
         _or_ `PlayerokAPI.listener.events.DealHasProblemEvent` \
          _or_ `PlayerokAPI.listener.events.DealProblemResolvedEvent`
         """
-        # TODO: Прочекать, что будет если напишет юзер напишет впервые в диалог
+        
         events = []
         old_chat_map = {chat.id: chat for chat in old_chats.chats}
         for new_chat in new_chats.chats:
