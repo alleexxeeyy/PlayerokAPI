@@ -66,7 +66,7 @@
     commentary_data_field = [data_field for data_field in data_field_list.data_fields if data_field.label == "Комментарий"][0] # берём поле с данным о комментарие (в этом случае только одно, чаще всего несколько необходимых)
     commentary_data_field.value = "Напишу вам в ТГ после оформления заказа" # задаём значение этому полю, так как оно обязательное
 
-    banner_attachment = ["banner.png"] # описываем пути к файлам-приложениям предмета
+    banner_attachment = "banner.png" # описываем пути к файлам-приложениям предмета
 
     item = acc.create_item( # вызываем метод создания предмета
         game_category_id=game_category.id,   # - указываем id категории игры
