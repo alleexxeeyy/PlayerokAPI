@@ -20,8 +20,3 @@ sphinx:
 python:
   install:
     - requirements: docs/requirements.txt
-
-build:
-  commands:
-    - find . -type d  # Покажет всю структуру проекта
-    - ls -R ../
