@@ -22,3 +22,8 @@ python:
     - requirements: docs/requirements.txt
     - method: pip
       path: .
+
+build:
+  commands:
+    - find . -type d  # Покажет всю структуру проекта
+    - ls -R ../

@@ -12,7 +12,17 @@
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../..'))
+#sys.path.insert(0, os.path.abspath('../..'))
+base_path = os.path.abspath('..')
+debug_file = os.path.join(os.path.dirname(__file__), 'path_debug.log')
+
+with open(debug_file, 'w') as f:
+    f.write(f"Текущий рабочий каталог: {os.getcwd()}\n")
+    f.write(f"Путь к conf.py: {os.path.abspath(__file__)}\n")
+    f.write(f"Проверяем: {base_path}\n")
+    f.write(f"Содержимое: {os.listdir(base_path)}\n")
+
+sys.path.insert(0, base_path)
 
 
 # -- Project information -----------------------------------------------------
