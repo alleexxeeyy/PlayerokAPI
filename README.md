@@ -46,7 +46,7 @@ for event in listener.listen(requests_delay=2): # - указываем пери�
             if event.message.text == "!привет":
                 acc.send_message(chat.id, "👋 Привет, я бот для Playerok!\n┗ Узнать команды - !команды", True)
             if event.message.text == "!дата":
-                acc.send_message(chat.id, f"📅 Текущяя дата: {datetime.now().strftime("%d/%m/%Y, %H:%M:%S")}", True)
+                acc.send_message(chat.id, f"📅 Текущая дата: {datetime.now().strftime("%d/%m/%Y, %H:%M:%S")}", True)
 ```
 
 ### Получение предметов пользователя
