@@ -1,5 +1,5 @@
 Типы
 ====
 
-.. automodule:: PlayerokAPI.types
+.. automodule:: playeorkapi.types
    :members:
