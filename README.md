@@ -9,7 +9,8 @@
 
 ## Установка
 ### С помощью pip
-Откройте командную строку и отправьте в неё команду `pip install playerokapi`
+! Временно недоступно, пока проект не выложен на PyPi !
+Откройте командную строку и отправьте в неё команду `pip install playerokapi` 
 
 ### Напрямую с github
 1. Скачайте репозиторий https://github.com/alleexxeeyy/PlayerokAPI
