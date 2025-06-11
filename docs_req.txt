@@ -3,6 +3,7 @@
 sphinx==7.2.6
 sphinx-rtd-theme==2.0.0
 furo==2024.8.6
+tqdm>=4.0.0
 
 alabaster==0.7.13
 babel==2.14.0
@@ -21,5 +22,3 @@ sphinxcontrib-jsmath
 sphinxcontrib-qthelp
 sphinxcontrib-serializinghtml
 urllib3==1.26.9
-
-furo==2024.8.6
