@@ -24,9 +24,12 @@
 ---------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    account
+
+.. toctree::
+   :maxdepth: 2
    types
    enums
    exceptions
