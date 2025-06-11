@@ -1,4 +1,4 @@
-![alt text](https://github.com/alleexxeeyy/PlayerokAPI/blob/main/docs/_static/logo.png?raw=true)
+![alt text](https://github.com/alleexxeeyy/PlayerokAPI/blob/main/docs/source/_static/logo.png?raw=true)
 Неофициальный API для работы с торговой площадкой Playerok на ЯП python, основанный на запросах.
 
 ## Навигация
