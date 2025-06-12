@@ -125,7 +125,7 @@ class Account:
         ]
         if any(sig in r.text for sig in cloudflare_signatures):
             raise CloudflareDetectedException(r)
-        if "errors" in r.json():
+        if "errors" in r.text:
            raise RequestError(r)
         if r.status_code != 200:
            raise RequestFailedError(r)
@@ -359,13 +359,17 @@ class Account:
         r = self.request("get", f"{self.base_url}/graphql", headers, payload).json()
         return game(r["data"]["game"])
     
-    def get_game_category(self, id: str | None = None, slug: str | None = None) -> types.GameCategory:
+    def get_game_category(self, id: str | None = None, game_id: str | None = None,
+                          slug: str | None = None) -> types.GameCategory:
         """
         Получает категорию игры/приложения.\n
-        Можно получить по любому из двух параметров:
+        Можно получить параметру `id` или по связке параметров `game_id` и `slug`
 
         :param id: ID категории, _опционально_.
         :type id: `str` or `None`
+
+        :param game_id: ID игры категории (лучше указывать в связке со slug, чтобы находить точную категорию), _опционально_.
+        :type game_id: `str` or `None`
 
         :param slug: Имя страницы категории, _опционально_.
         :type slug: `str` or `None`
@@ -380,7 +384,7 @@ class Account:
         }
         payload = {
             "operationName": "GamePageCategory",
-            "variables": json.dumps({"id": id, "slug": slug}, ensure_ascii=False),
+            "variables": json.dumps({"id": id, "gameId": game_id, "slug": slug}, ensure_ascii=False),
             "extensions": json.dumps({"persistedQuery": {"version": 1, "sha256Hash": "02350443a7af0575ab5d13b25e59c7dd664f10abbfe835123da39f518e29da14"}}, ensure_ascii=False)
         }
         r = self.request("get", f"{self.base_url}/graphql", headers, payload).json()

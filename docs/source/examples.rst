@@ -55,7 +55,7 @@
     
     # --- создание предмета ---
     game = acc.get_game(slug="telegram") # получаем нужную игру
-    game_category = acc.get_game_category([category for category in game.categories if category.name == "Подарки (NFT)"][0]) # получаем категорию этой игры
+    game_category = acc.get_game_category([category for category in game.categories if category.name == "Подарки (NFT)"][0].id) # получаем категорию этой игры
     obtaining_type_list = acc.get_game_category_obtaining_types(game_category.id) # получаем типы получения предмета в этой категории
     gift_obtaining_type = [obtaining_type for obtaining_type in obtaining_type_list.obtaining_types if obtaining_type.name == "Подарок"][0] # берём тип выдачи подарком
 
