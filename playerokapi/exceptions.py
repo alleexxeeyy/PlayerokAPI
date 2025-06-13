@@ -10,11 +10,13 @@ class CloudflareDetectedException(Exception):
 
     def __init__(self, response: requests.Response):
         self.response = response
+        self.status_code = self.response.status_code
+        self.html_text = self.response.text
 
     def __str__(self):
         msg = f"Ошибка: CloudFlare заметил подозрительную активность при отправке запроса на сайт Playerok." \
-              f"\nКод ошибки: {self.response.status_code}" \
-              f"\nОтвет: {self.response.text}"
+              f"\nКод ошибки: {self.status_code}" \
+              f"\nОтвет: {self.html_text}"
         return msg
     
 class RequestFailedError(Exception):
@@ -27,11 +29,13 @@ class RequestFailedError(Exception):
 
     def __init__(self, response: requests.Response):
         self.response = response
+        self.status_code = self.response.status_code
+        self.html_text = self.response.text
 
     def __str__(self):
         msg = f"Ошибка запроса к {self.response.url}" \
-              f"\nКод ошибки: {self.response.status_code}" \
-              f"\nОтвет: {self.response.text}"
+              f"\nКод ошибки: {self.status_code}" \
+              f"\nОтвет: {self.html_text}"
         return msg
 
 class RequestError(Exception):
