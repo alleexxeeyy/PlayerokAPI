@@ -53,3 +53,11 @@ class RequestError(Exception):
               f"\nКод ошибки: {self.error_code}" \
               f"\nСообщение: {self.error_message}"
         return msg
+
+class UnathorizedError(Exception):
+    """
+    Ошибка, которая возбуждается, если не удалось подключиться к аккаунту Playerok.
+    """
+
+    def __str__(self):
+        return f"Не удалось подключиться к аккаунту Playerok. Может вы указали неверный token?"

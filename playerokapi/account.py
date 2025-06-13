@@ -148,6 +148,8 @@ class Account:
         r = self.request("post", f"{self.base_url}/graphql", headers, payload)
         rjson = r.json()
         data: dict = rjson["data"]["viewer"]
+        if data is None:
+            raise UnathorizedError()
         self.id = data.get("id")
         self.username = data.get("username")
         self.email = data.get("email")
