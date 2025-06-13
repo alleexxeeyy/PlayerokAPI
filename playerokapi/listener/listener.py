@@ -54,7 +54,7 @@ class EventListener:
 
     def parse_message_event(self, message: ChatMessage) -> list[NewMessageEvent | NewDealEvent | ItemPaidEvent
                                                                 | ItemSentEvent | DealConfirmedEvent | DealRolledBackEvent | DealHasProblemEvent
-                                                                | DealProblemResolvedEvent]:
+                                                                | DealProblemResolvedEvent | DealStatusChangedEvent]:
         """
         Получает ивент с сообщения.
         
@@ -71,7 +71,8 @@ class EventListener:
         _or_ `PlayerokAPI.listener.events.DealConfirmedEvent` \
         _or_ `PlayerokAPI.listener.events.DealRolledBackEvent` \
         _or_ `PlayerokAPI.listener.events.DealHasProblemEvent` \
-         _or_ `PlayerokAPI.listener.events.DealProblemResolvedEvent`
+        _or_ `PlayerokAPI.listener.events.DealProblemResolvedEvent` \
+        _or_ `PlayerokAPI.listener.events.DealStatusChangedEvent(message.deal)`
         """
         
         if not message:
@@ -111,7 +112,8 @@ class EventListener:
         _or_ `PlayerokAPI.listener.events.DealConfirmedEvent` \
         _or_ `PlayerokAPI.listener.events.DealRolledBackEvent` \
         _or_ `PlayerokAPI.listener.events.DealHasProblemEvent` \
-         _or_ `PlayerokAPI.listener.events.DealProblemResolvedEvent`
+        _or_ `PlayerokAPI.listener.events.DealProblemResolvedEvent` \
+        _or_ `PlayerokAPI.listener.events.DealStatusChangedEvent(message.deal)`
         """
         
         events = []
@@ -137,7 +139,7 @@ class EventListener:
                 
     def listen(self, requests_delay: int | float = 4) -> Generator[ChatInitializedEvent | NewMessageEvent | NewDealEvent | ItemPaidEvent
                                                                   | ItemSentEvent | DealConfirmedEvent | DealRolledBackEvent | DealHasProblemEvent
-                                                                  | DealProblemResolvedEvent,
+                                                                  | DealProblemResolvedEvent | DealStatusChangedEvent,
                                                                   None, None]:
         """
         "Слушает" события в чатах. 
@@ -156,7 +158,8 @@ class EventListener:
         _or_ `PlayerokAPI.listener.events.DealConfirmedEvent` \
         _or_ `PlayerokAPI.listener.events.DealRolledBackEvent` \
         _or_ `PlayerokAPI.listener.events.DealHasProblemEvent` \
-         _or_ `PlayerokAPI.listener.events.DealProblemResolvedEvent`
+        _or_ `PlayerokAPI.listener.events.DealProblemResolvedEvent` \
+        _or_ `PlayerokAPI.listener.events.DealStatusChangedEvent(message.deal)`
         """
 
         chats: ChatList | None = None
