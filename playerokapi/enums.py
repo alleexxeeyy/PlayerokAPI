@@ -18,9 +18,11 @@ class EventTypes(Enum):
     """ Пользователь сообщил о проблеме в сделке. """
     DEAL_PROBLEM_RESOLVED = 7
     """ Проблема в сделке решена. """
-    ITEM_PAID = 8
+    DEAL_STATUS_CHANGED = 8
+    """ Статус сделки изменён. """
+    ITEM_PAID = 9
     """ Пользователь оплатил предмет. """
-    ITEM_SENT = 9
+    ITEM_SENT = 10
     """ Предмет отправлен (продавец подтвердил выполнение сделки). """
 
 class ItemLogEvents(Enum):

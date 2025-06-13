@@ -99,6 +99,18 @@ class DealProblemResolvedEvent(BaseEvent):
         self.deal: types.ItemDeal = deal_obj
         """ Объект сделки. """
 
+class DealStatusChangedEvent(BaseEvent):
+    """
+    Класс события: статус сделки изменён.
+
+    :param deal_obj: Объект сделки.
+    :type deal_obj: `PlayerokAPI.types.ItemDeal`
+    """
+    def __init__(self, deal_obj: types.ItemDeal):
+        super(DealStatusChangedEvent, self).__init__(EventTypes.DEAL_STATUS_CHANGED)
+        self.deal: types.ItemDeal = deal_obj
+        """ Объект сделки. """
+
 class ItemPaidEvent(BaseEvent):
     """
     Класс события: предмет оплачен.
