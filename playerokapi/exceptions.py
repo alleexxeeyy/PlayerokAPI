@@ -54,7 +54,7 @@ class RequestError(Exception):
               f"\nСообщение: {self.error_message}"
         return msg
 
-class UnathorizedError(Exception):
+class UnauthorizedError(Exception):
     """
     Ошибка, которая возбуждается, если не удалось подключиться к аккаунту Playerok.
     """

@@ -149,7 +149,7 @@ class Account:
         rjson = r.json()
         data: dict = rjson["data"]["viewer"]
         if data is None:
-            raise UnathorizedError()
+            raise UnauthorizedError()
         self.id = data.get("id")
         self.username = data.get("username")
         self.email = data.get("email")
