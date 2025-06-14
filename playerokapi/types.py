@@ -60,9 +60,9 @@ class AccountBalance:
         self.id: str = id
         """ ID баланса. """
         self.value: int = value
-        """ Сумма баланса. """
+        """ Сумма общего баланса. """
         self.frozen: int = frozen
-        """ Сумма замороженного баланс.а """
+        """ Сумма замороженного баланса. """
         self.avaible: int = avaible
         """ Сумма доступного баланса. """
         self.withdrawable: int = withdrawable
