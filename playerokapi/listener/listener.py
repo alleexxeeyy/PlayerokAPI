@@ -120,20 +120,26 @@ class EventListener:
         old_chat_map = {chat.id: chat for chat in old_chats.chats}
         for new_chat in new_chats.chats:
             old_chat = old_chat_map.get(new_chat.id)
+            
             if not old_chat:
-                msgs = self.account.get_chat_messages(new_chat.id, 5)
-                for msg in msgs.messages:
+                msg_list = self.account.get_chat_messages(new_chat.id, 5)
+                for msg in reversed(msg_list.messages):
                     events.extend(self.parse_message_event(msg))
+                continue
 
             if not new_chat.last_message or not old_chat.last_message:
                 continue
             if new_chat.last_message.id == old_chat.last_message.id:
                 continue
 
-            msgs = self.account.get_chat_messages(new_chat.id, 5)
-            for msg in msgs.messages:
+            msg_list = self.account.get_chat_messages(new_chat.id, 10)
+            new_msgs = []
+            for msg in msg_list.messages:
                 if msg.id == old_chat.last_message.id:
                     break
+                new_msgs.append(msg)
+
+            for msg in reversed(new_msgs):
                 events.extend(self.parse_message_event(msg))
         return events      
                 
