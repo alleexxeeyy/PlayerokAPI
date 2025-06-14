@@ -107,10 +107,10 @@ class AccountDealsStats:
     Подкласс, описывающий статистику сделок аккаунта.
 
     :param incoming: Входящие сделки.
-    :type incoming: `types.UserIncomingDealsStats`
+    :type incoming: `types.AccountIncomingDealsStats`
 
     :param outgoing: Исходящие сделки.
-    :type outgoing: `types.UserOutgoingDealsStats`
+    :type outgoing: `types.AccountOutgoingDealsStats`
     """
     def __init__(self, incoming: AccountIncomingDealsStats, outgoing: AccountOutgoingDealsStats):
         self.incoming: AccountIncomingDealsStats = incoming
@@ -139,10 +139,10 @@ class AccountStats:
     Подкласс, описывающий статистику аккаунта.
 
     :param items: Статистика предметов.
-    :type items: `types.UserItemsStats`
+    :type items: `types.AccountItemsStats`
 
     :param deals: Статистика сделок.
-    :type deals: `types.UserDealsStats`
+    :type deals: `types.AccountDealsStats`
     """
     def __init__(self, items: AccountItemsStats, deals: AccountDealsStats):
         self.items: AccountItemsStats = items

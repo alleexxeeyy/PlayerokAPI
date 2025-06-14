@@ -341,7 +341,7 @@ def account_incoming_deals_stats(data: dict) -> 'AccountIncomingDealsStats':
     from .types import AccountIncomingDealsStats
     if not data:
         return None
-    AccountIncomingDealsStats(
+    return AccountIncomingDealsStats(
         total=data.get("total"), 
         finished=data.get("finished")
     )
@@ -361,7 +361,7 @@ def account_deals_stats(data: dict) -> 'AccountDealsStats':
         return None
     return AccountDealsStats(
         incoming=account_incoming_deals_stats(data.get("incoming")), 
-        outgoing=account_incoming_deals_stats(data.get("outgoing"))
+        outgoing=account_outgoing_deals_stats(data.get("outgoing"))
     )
 
 def account_stats(data: dict) -> 'AccountStats':
