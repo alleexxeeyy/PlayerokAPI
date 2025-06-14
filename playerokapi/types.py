@@ -46,8 +46,8 @@ class AccountBalance:
     :param frozen: Сумма замороженного баланса.
     :type frozen: `int`
 
-    :param avaible: Сумма доступного баланса.
-    :type avaible: `int`
+    :param available: Сумма доступного баланса.
+    :type available: `int`
 
     :param withdrawable: Сумма баланса, доступного для вывода.
     :type withdrawable: `int`
@@ -55,7 +55,7 @@ class AccountBalance:
     :param pending_income: Ожидаемый доход.
     :type pending_income: `int`
     """
-    def __init__(self, id: str, value: int, frozen: int, avaible: int, 
+    def __init__(self, id: str, value: int, frozen: int, available: int, 
                  withdrawable: int, pending_income: int):
         self.id: str = id
         """ ID баланса. """
@@ -63,7 +63,7 @@ class AccountBalance:
         """ Сумма общего баланса. """
         self.frozen: int = frozen
         """ Сумма замороженного баланса. """
-        self.avaible: int = avaible
+        self.available: int = available
         """ Сумма доступного баланса. """
         self.withdrawable: int = withdrawable
         """ Сумма баланса, доступного для вывода. """

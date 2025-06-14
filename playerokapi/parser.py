@@ -383,7 +383,7 @@ def account_balance(data: dict) -> 'AccountBalance':
         id=data.get("id"), 
         value=data.get("value"), 
         frozen=data.get("frozen"), 
-        avaible=data.get("avaible"),
+        available=data.get("available"),
         withdrawable=data.get("withdrawable"), 
         pending_income=data.get("pendingIncome")
     )
