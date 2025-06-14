@@ -880,7 +880,7 @@ class Account:
         self.request("post", f"{self.base_url}/graphql", headers, payload)
         return True
     
-    def publish_item(self, item_id: str, priority_status_id: list[str], 
+    def publish_item(self, item_id: str, priority_status_id: str, 
                      transaction_provider_id: TransactionProviderIds = TransactionProviderIds.LOCAL) -> types.Item:
         """
         Выставляет предмет на продажу.
