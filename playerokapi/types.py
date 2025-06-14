@@ -81,9 +81,9 @@ class AccountIncomingDealsStats:
     :type finished: `int`
     """
     def __init__(self, total: int, finished: int):
-        self.total = total
+        self.total: int = total
         """ Всего исходящих сделок. """
-        self.finished = finished
+        self.finished: int = finished
         """ Кол-во завершённых исходящих сделок. """
 
 class AccountOutgoingDealsStats:
@@ -113,9 +113,9 @@ class AccountDealsStats:
     :type outgoing: `types.UserOutgoingDealsStats`
     """
     def __init__(self, incoming: AccountIncomingDealsStats, outgoing: AccountOutgoingDealsStats):
-        self.incoming = incoming
+        self.incoming: AccountIncomingDealsStats = incoming
         """ Входящие сделки. """
-        self.outgoing = outgoing
+        self.outgoing: AccountOutgoingDealsStats = outgoing
         """ Исходящие сделки. """
 
 class AccountItemsStats:
@@ -129,9 +129,9 @@ class AccountItemsStats:
     :type finished: `int`
     """
     def __init__(self, total: int, finished: int):
-        self.total = total
+        self.total: int = total
         """ Всего предметов. """
-        self.finished = finished
+        self.finished: int = finished
         """ Кол-во завершённых предметов. """
 
 class AccountStats:
@@ -145,9 +145,9 @@ class AccountStats:
     :type deals: `types.UserDealsStats`
     """
     def __init__(self, items: AccountItemsStats, deals: AccountDealsStats):
-        self.items = items
+        self.items: AccountItemsStats = items
         """ Статистика предметов. """
-        self.deals = deals
+        self.deals: AccountDealsStats = deals
         """ Статистика сделок. """
 
 class AccountProfile:
