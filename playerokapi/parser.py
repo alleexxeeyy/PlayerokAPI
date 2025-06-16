@@ -661,7 +661,7 @@ def item_deal(data: dict) -> 'ItemDeal':
         created_at=data.get("createdAt"),
         logs=logs,
         transaction=transaction(data.get("transaction")),
-        user=data.get("user"),
+        user=user_profile(data.get("user")),
         chat=chat(data.get("chat")),
         item=item(data.get("item")),
         review=review(data.get("review")),
