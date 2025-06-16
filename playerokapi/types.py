@@ -1319,7 +1319,7 @@ class Item:
     :type description: `str`
 
     :param obtaining_type: Способ получения.
-    :type obtaining_type: `str` or `None`
+    :type obtaining_type: `types.GameCategoryObtainingType` or `None`
 
     :param price: Цена предмета.
     :type price: `int`
