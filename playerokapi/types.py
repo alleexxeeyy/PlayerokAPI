@@ -1405,7 +1405,7 @@ class Item:
         """ Имя страницы предмета. """
         self.status: ItemStatuses = status
         """ Статус предмета. """
-        self.user: str = user
+        self.user: UserProfile = user
         """ Профиль продавца. """
 
 class ItemProfile:
