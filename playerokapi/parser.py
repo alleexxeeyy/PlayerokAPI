@@ -730,8 +730,8 @@ def chat_message(data: dict) -> 'ChatMessage':
         transaction=transaction(data.get("transaction")),
         moderator=moderator(data.get("moderator")),
         event=event(data.get("event")),
-        event_by_user=event(data.get("eventByUser")),
-        event_to_user=event(data.get("eventToUser")),
+        event_by_user=user_profile(data.get("eventByUser")),
+        event_to_user=user_profile(data.get("eventToUser")),
         is_auto_response=data.get("isAutoResponse"),
         buttons=btns
     )
