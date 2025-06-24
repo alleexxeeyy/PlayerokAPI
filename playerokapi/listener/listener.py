@@ -90,7 +90,7 @@ class EventListener:
         elif message.text == "{{DEAL_PROBLEM_RESOLVED}}" and message.deal is not None:
             return [DealProblemResolvedEvent(message.deal, chat), DealStatusChangedEvent(message.deal, chat)]
         
-        return [NewMessageEvent(message)]
+        return [NewMessageEvent(message, chat)]
 
     def get_message_events(self, old_chats: ChatList, new_chats: ChatList):
         """
