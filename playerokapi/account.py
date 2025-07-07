@@ -1027,20 +1027,21 @@ class Account:
             statuses.append(item_priority_status(status))
         return statuses
 
+
     def increase_item_priority_status(self, item_id: str, priority_status_id: str, payment_method_id: str | None = None, 
                                       transaction_provider_id: TransactionProviderIds = TransactionProviderIds.LOCAL) -> types.Item:
         """
         Повышает статус приоритета предмета.
-
+    
         :param item_id: ID предмета.
         :type item_id: `str`
-
+    
         :param priority_status_id: ID статуса приоритета, на который нужно изменить.
         :type priority_status_id: `int` or `str`
-
+    
         :param payment_method_id: Метод оплаты, _опционально_.
         :type payment_method_id: `str`
-
+    
         :param transaction_provider_id: ID провайдера транзакции (LOCAL - с баланса кошелька на сайте).
         :type transaction_provider_id: `PlayerokAPI.enums.TransactionProviderIds`
         
@@ -1062,9 +1063,14 @@ class Account:
                     "transactionProviderData": {
                         "paymentMethodId": payment_method_id
                     },
-                    "transactionProviderId": transaction_provider_id
+                    # Правильно преобразуем Enum в строку
+                    "transactionProviderId": transaction_provider_id.name 
                 }
             }
         }
-        r = self.request("get", f"{self.base_url}/graphql", headers, payload).json()
+        # Изменяем метод с "get" на "post"
+        r = self.request("post", f"{self.base_url}/graphql", headers, payload).json()
         return item(r["data"]["increaseItemPriorityStatus"])
+            }
+            r = self.request("get", f"{self.base_url}/graphql", headers, payload).json()
+            return item(r["data"]["increaseItemPriorityStatus"])
