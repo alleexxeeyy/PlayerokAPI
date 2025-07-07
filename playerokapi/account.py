@@ -1,5 +1,6 @@
 from __future__ import annotations
-import tls_requests
+import cloudscraper
+import requests
 from typing import *
 import json
 
@@ -12,6 +13,7 @@ from .enums import *
 class Account:
     """
     Класс, описывающий данные и методы Playerok аккаунта.
+    (Версия с использованием cloudscraper)
 
     :param token: Токен аккаунта.
     :type token: `str`
@@ -19,7 +21,7 @@ class Account:
     :param user_agent: Юзер-агент браузера, _опционально_.
     :type user_agent: `str`
 
-    :param https_proxy: HTTPS прокси в формате: `https://user:pass@ip:port` или `https://ip:port`, _опционально_.
+    :param https_proxy: HTTPS прокси в формате: `http://user:pass@ip:port` или `http://ip:port`, _опционально_.
     :type https_proxy: `str`
 
     :param requests_timeout: Таймаут ожидания ответов на запросы.
@@ -41,42 +43,42 @@ class Account:
 
         self.base_url = "https://playerok.com"
         """ Базовый URL для всех запросов. """
+        
+        # Инициализация сессии cloudscraper
+        self.scraper = cloudscraper.create_scraper()
+        
+        # Применение кастомного User-Agent
+        if self.user_agent:
+            self.scraper.headers["User-Agent"] = self.user_agent
+            
+        # Настройка прокси
+        if self.https_proxy:
+            proxies = {
+                "http": self.https_proxy,
+                "https": self.https_proxy
+            }
+            self.scraper.proxies.update(proxies)
 
         self.id: str | None = None
-        """ ID аккаунта. \n\n_Заполняется при первом использовании get()_ """
         self.username: str | None = None
-        """ Никнейм аккаунта. \n\n_Заполняется при первом использовании get()_ """
         self.email: str | None = None
-        """ Email почта аккаунта. \n\n_Заполняется при первом использовании get()_ """
         self.role: str | None = None
-        """ Роль аккаунта. \n\n_Заполняется при первом использовании get()_ """
         self.support_chat_id: str | None = None
-        """ ID чата поддержки. \n\n_Заполняется при первом использовании get()_ """
         self.system_chat_id: str | None = None
-        """ ID системного чата. \n\n_Заполняется при первом использовании get()_ """
         self.unread_chats_counter: int | None = None
-        """ Количество непрочитанных чатов. \n\n_Заполняется при первом использовании get()_ """
         self.is_blocked: bool | None = None
-        """ Заблокирован ли аккаунт. \n\n_Заполняется при первом использовании get()_ """
         self.is_blocked_for: str | None = None
-        """ Причина блокировки аккаунта. \n\n_Заполняется при первом использовании get()_ """
         self.created_at: str | None = None
-        """ Дата создания аккаунта. \n\n_Заполняется при первом использовании get()_ """
         self.last_item_created_at: str | None = None
-        """ Дата создания последнего предмета. \n\n_Заполняется при первом использовании get()_ """
         self.has_frozen_balance: bool | None = None
-        """ Заморожен ли баланс аккаунта. \n\n_Заполняется при первом использовании get()_ """
         self.has_confirmed_phone_number: bool | None = None
-        """ Подтверждён ли номер телефона. \n\n_Заполняется при первом использовании get()_ """
         self.can_publish_items: bool | None = None
-        """ Может ли продавать предметы. \n\n_Заполняется при первом использовании get()_ """
-        self.profile: AccountProfile | None = None
-        """ Профиль аккаунта (не путать с профилем пользователя). \n\n_Заполняется при первом использовании get()_ """
+        self.profile: types.AccountProfile | None = None
 
         set_account(self) # сохранение объекта аккаунта
 
     def request(self, method: str, url: str, headers: dict[str, str], 
-                payload: dict[str, str] | None = None, files: dict | None = None) -> requests.Response:
+                payload: dict[str, Any] | None = None, files: dict | None = None) -> requests.Response:
         """
         Отправляет запрос на сервер playerok.com.
 
@@ -90,7 +92,7 @@ class Account:
         :type headers: `dict[str, str]`
         
         :param payload: Payload запроса.
-        :type payload: `dict[str, str]` or `None`
+        :type payload: `dict[str, Any]` or `None`
         
         :param files: Файлы запроса.
         :type files: `dict` or `None`
@@ -100,37 +102,38 @@ class Account:
         """
         headers["Accept-Language"] = "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7"
         headers["Cookie"] = f"token={self.token}"
-        if self.user_agent:
-            headers["User-Agent"] = self.user_agent
         headers["x-apollo-operation-name"] = 'SomeName'
         headers["apollo-require-preflight"] = 'true'
 
-        client = tls_requests.Client(proxy=self.https_proxy, client_identifier="chrome_137", random_tls_extension_order=True)
-        if method == "get":
-            r = client.get(url=url, params=payload, headers=headers, 
-                           timeout=self.requests_timeout)
-        elif method == "post":
-            r = client.post(url=url, json=payload if not files else None, 
-                            data=payload if files else None, headers=headers, 
-                            files=files, timeout=self.requests_timeout)
-        else: 
-            return
+        try:
+            if method.lower() == "get":
+                r = self.scraper.get(url=url, params=payload, headers=headers, 
+                               timeout=self.requests_timeout)
+            elif method.lower() == "post":
+                r = self.scraper.post(url=url, json=payload if not files else None, 
+                                data=payload if files else None, headers=headers, 
+                                files=files, timeout=self.requests_timeout)
+            else: 
+                raise ValueError(f"Unsupported request method: {method}")
 
-        cloudflare_signatures = [
-            "<title>Just a moment...</title>",
-            "window._cf_chl_opt",
-            "Enable JavaScript and cookies to continue",
-            "Checking your browser before accessing",
-            "cf-browser-verification"
-        ]
-        if any(sig in r.text for sig in cloudflare_signatures):
-            raise CloudflareDetectedException(r)
-        if "errors" in r.text:
-           raise RequestError(r)
-        if r.status_code != 200:
-           raise RequestFailedError(r)
-        return r
-    
+            if "errors" in r.text:
+                try:
+                    if r.json().get("errors"):
+                         raise RequestError(r)
+                except json.JSONDecodeError:
+                    pass
+            
+            if r.status_code != 200:
+               raise RequestFailedError(r)
+            
+            return r
+        
+        except cloudscraper.exceptions.CloudflareChallengeError as e:
+            # Преобразуем ошибку cloudscraper в кастомную для совместимости, если нужно
+            # или можно просто пробросить ее дальше
+            raise CloudflareDetectedException(e.response) from e
+
+
     def get(self) -> Account:
         """
         Получает/обновляет данные об аккаунте.
@@ -141,7 +144,6 @@ class Account:
         headers = {"Accept": "*/*", "Content-Type": "application/json", "Origin": self.base_url}
         payload = {
             "operationName": "viewer",
-            "query": "query viewer {\n  viewer {\n    ...Viewer\n    __typename\n  }\n}\n\nfragment Viewer on User {\n  id\n  username\n  email\n  role\n  hasFrozenBalance\n  supportChatId\n  systemChatId\n  unreadChatsCounter\n  isBlocked\n  isBlockedFor\n  createdAt\n  lastItemCreatedAt\n  hasConfirmedPhoneNumber\n  canPublishItems\n  profile {\n    id\n    avatarURL\n    testimonialCounter\n    __typename\n  }\n  __typename\n}",
             "query": "query viewer {\n  viewer {\n    ...Viewer\n    __typename\n  }\n}\n\nfragment Viewer on User {\n  id\n  username\n  email\n  role\n  hasFrozenBalance\n  supportChatId\n  systemChatId\n  unreadChatsCounter\n  isBlocked\n  isBlockedFor\n  createdAt\n  lastItemCreatedAt\n  hasConfirmedPhoneNumber\n  canPublishItems\n  profile {\n    id\n    avatarURL\n    testimonialCounter\n    __typename\n  }\n  __typename\n}",
             "variables": {}
         }
@@ -593,18 +595,28 @@ class Account:
         :return: Объект чата.
         :rtype: `PlayerokAPI.types.Chat` or `None`
         """
-
         next_cursor = None
-        first_chat: Chat | None = None
+        first_chat_id: str | None = None
         while True:
             chats = self.get_chats(count=24, after_cursor=next_cursor)
-            for chat in chats.chats:
-                if first_chat and chat.id == first_chat.id:
-                    return None
-                first_chat = chat if not first_chat else first_chat
-                for user in chat.users:
+            if not chats.chats:
+                return None
+            
+            # Условие выхода из цикла: если мы вернулись к первому чату, который уже видели
+            if first_chat_id and chats.chats[0].id == first_chat_id:
+                return None
+            
+            if not first_chat_id:
+                first_chat_id = chats.chats[0].id
+
+            for current_chat in chats.chats:
+                for user in current_chat.users:
                     if user.username.lower() == username.lower():
-                        return chat
+                        return current_chat
+                        
+            if not chats.page_info.has_next_page:
+                return None
+
             next_cursor = chats.page_info.end_cursor
     
     def get_chat_messages(self, chat_id: str, count: int = 24,
@@ -654,7 +666,7 @@ class Account:
         }
         payload = {
             "operationName": "markChatAsRead",
-            "query": "mutation markChatAsRead($input: MarkChatAsReadInput!) {\n	markChatAsRead(input: $input) {\n		...RegularChat\n		__typename\n	}\n}\n\nfragment RegularChat on Chat {\n	id\n	type\n	unreadMessagesCounter\n	bookmarked\n	isTextingAllowed\n	owner {\n		...ChatParticipant\n		__typename\n	}\n	agent {\n		...ChatParticipant\n		__typename\n	}\n	participants {\n		...ChatParticipant\n		__typename\n	}\n	deals {\n		...ChatActiveItemDeal\n		__typename\n	}\n	status\n	startedAt\n	finishedAt\n	__typename\n}\n\nfragment ChatParticipant on UserFragment {\n	...RegularUserFragment\n	__typename\n}\n\nfragment RegularUserFragment on UserFragment {\n	id\n	username\n	role\n	avatarURL\n	isOnline\n	isBlocked\n	rating\n	testimonialCounter\n	createdAt\n	supportChatId\n	systemChatId\n	__typename\n}\n\nfragment ChatActiveItemDeal on ItemDealProfile {\n	id\n	direction\n	status\n	hasProblem\n	testimonial {\n		id\n		rating\n		__typename\n	}\n	item {\n		...ChatDealItemEdgeNode\n		__typename\n	}\n	user {\n		...RegularUserFragment\n		__typename\n	}\n	__typename\n}\n\nfragment ChatDealItemEdgeNode on ItemProfile {\n	...ChatDealMyItemEdgeNode\n	...ChatDealForeignItemEdgeNode\n	__typename\n}\n\nfragment ChatDealMyItemEdgeNode on MyItemProfile {\n	id\n	slug\n	priority\n	status\n	name\n	price\n	rawPrice\n	statusExpirationDate\n	sellerType\n	attachment {\n		...PartialFile\n		__typename\n	}\n	user {\n		...UserItemEdgeNode\n		__typename\n	}\n	approvalDate\n	createdAt\n	priorityPosition\n	feeMultiplier\n	__typename\n}\n\nfragment PartialFile on File {\n	id\n	url\n	__typename\n}\n\nfragment UserItemEdgeNode on UserFragment {\n	...UserEdgeNode\n	__typename\n}\n\nfragment UserEdgeNode on UserFragment {\n	...RegularUserFragment\n	__typename\n}\n\nfragment ChatDealForeignItemEdgeNode on ForeignItemProfile {\n	id\n	slug\n	priority\n	status\n	name\n	price\n	rawPrice\n	sellerType\n	attachment {\n		...PartialFile\n		__typename\n	}\n	user {\n		...UserItemEdgeNode\n		__typename\n	}\n	approvalDate\n	priorityPosition\n	createdAt\n	feeMultiplier\n	__typename\n}",
+            "query": "mutation markChatAsRead($input: MarkChatAsReadInput!) {\n    markChatAsRead(input: $input) {\n        ...RegularChat\n        __typename\n    }\n}\n\nfragment RegularChat on Chat {\n    id\n    type\n    unreadMessagesCounter\n    bookmarked\n    isTextingAllowed\n    owner {\n        ...ChatParticipant\n        __typename\n    }\n    agent {\n        ...ChatParticipant\n        __typename\n    }\n    participants {\n        ...ChatParticipant\n        __typename\n    }\n    deals {\n        ...ChatActiveItemDeal\n        __typename\n    }\n    status\n    startedAt\n    finishedAt\n    __typename\n}\n\nfragment ChatParticipant on UserFragment {\n    ...RegularUserFragment\n    __typename\n}\n\nfragment RegularUserFragment on UserFragment {\n    id\n    username\n    role\n    avatarURL\n    isOnline\n    isBlocked\n    rating\n    testimonialCounter\n    createdAt\n    supportChatId\n    systemChatId\n    __typename\n}\n\nfragment ChatActiveItemDeal on ItemDealProfile {\n    id\n    direction\n    status\n    hasProblem\n    testimonial {\n        id\n        rating\n        __typename\n    }\n    item {\n        ...ChatDealItemEdgeNode\n        __typename\n    }\n    user {\n        ...RegularUserFragment\n        __typename\n    }\n    __typename\n}\n\nfragment ChatDealItemEdgeNode on ItemProfile {\n    ...ChatDealMyItemEdgeNode\n    ...ChatDealForeignItemEdgeNode\n    __typename\n}\n\nfragment ChatDealMyItemEdgeNode on MyItemProfile {\n    id\n    slug\n    priority\n    status\n    name\n    price\n    rawPrice\n    statusExpirationDate\n    sellerType\n    attachment {\n        ...PartialFile\n        __typename\n    }\n    user {\n        ...UserItemEdgeNode\n        __typename\n    }\n    approvalDate\n    createdAt\n    priorityPosition\n    feeMultiplier\n    __typename\n}\n\nfragment PartialFile on File {\n    id\n    url\n    __typename\n}\n\nfragment UserItemEdgeNode on UserFragment {\n    ...UserEdgeNode\n    __typename\n}\n\nfragment UserEdgeNode on UserFragment {\n    ...RegularUserFragment\n    __typename\n}\n\nfragment ChatDealForeignItemEdgeNode on ForeignItemProfile {\n    id\n    slug\n    priority\n    status\n    name\n    price\n    rawPrice\n    sellerType\n    attachment {\n        ...PartialFile\n        __typename\n    }\n    user {\n        ...UserItemEdgeNode\n        __typename\n    }\n    approvalDate\n    priorityPosition\n    createdAt\n    feeMultiplier\n    __typename\n}",
             "variables": {
                 "input": {
                     "chatId": chat_id
@@ -702,7 +714,7 @@ class Account:
         return chat_message(r["data"]["createChatMessage"])
 
     def create_item(self, game_category_id: str, obtaining_type_id: str, name: str, price: int, 
-                    description: str, options: list[GameCategoryOption], data_fields: list[GameCategoryDataField],
+                    description: str, options: list[types.GameCategoryOption], data_fields: list[types.GameCategoryDataField],
                     attachments: list[str]) -> types.Item:
         """
         Создаёт предмет (после создания помещается в черновик, а не сразу выставляется на продажу).
@@ -763,23 +775,25 @@ class Account:
                 "attachments": [None] * len(attachments)
             }
         }
-        map = {}
-        files = {}
+        map_data = {}
+        files_data = {}
         i=0
         for att in attachments:
             i+=1
-            map[str(i)] = [f"variables.attachments.{i-1}"]
-            files[str(i)] = open(att, "rb")
+            map_data[str(i)] = [f"variables.attachments.{i-1}"]
+            files_data[str(i)] = open(att, "rb")
         payload = {
             "operations": json.dumps(operations),
-            "map": json.dumps(map)
+            "map": json.dumps(map_data)
         }
 
-        r = self.request("post", f"{self.base_url}/graphql", headers, payload, files).json()
+        r = self.request("post", f"{self.base_url}/graphql", headers, payload, files_data).json()
+        for f in files_data.values():
+            f.close()
         return item(r["data"]["createItem"])
     
     def update_item(self, id: str, name: str | None = None, price: int | None = None, description: str | None = None, 
-                    options: list[GameCategoryOption] | None = None, data_fields: list[GameCategoryDataField] | None = None, 
+                    options: list[types.GameCategoryOption] | None = None, data_fields: list[types.GameCategoryDataField] | None = None, 
                     remove_attachments: list[str] | None = None, add_attachments: list[str] | None = None) -> types.Item:
         """
         Обновляет предмет аккаунта.
@@ -843,19 +857,22 @@ class Account:
         if data_fields: operations["variables"]["input"]["dataFields"] = payload_data_fields
         if remove_attachments: operations["variables"]["input"]["removedAttachments"] = remove_attachments
 
-        map = {}
-        files = {}
+        map_data = {}
+        files_data = {}
         if add_attachments:
             i=0
             for att in add_attachments:
                 i+=1
-                map[str(i)] = [f"variables.addedAttachments.{i-1}"]
-                files[str(i)] = open(att, "rb")
+                map_data[str(i)] = [f"variables.addedAttachments.{i-1}"]
+                files_data[str(i)] = open(att, "rb")
         payload = {
             "operations": json.dumps(operations),
-            "map": json.dumps(map)
+            "map": json.dumps(map_data)
         }
-        r = self.request("post", f"{self.base_url}/graphql", headers, payload if files else operations, files if files else None).json()
+        r = self.request("post", f"{self.base_url}/graphql", headers, payload if files_data else operations, files_data if files_data else None).json()
+        if files_data:
+            for f in files_data.values():
+                f.close()
         return item(r["data"]["updateItem"])
     
     def remove_item(self, id: str) -> bool:
@@ -1010,20 +1027,21 @@ class Account:
             statuses.append(item_priority_status(status))
         return statuses
 
+
     def increase_item_priority_status(self, item_id: str, priority_status_id: str, payment_method_id: str | None = None, 
                                       transaction_provider_id: TransactionProviderIds = TransactionProviderIds.LOCAL) -> types.Item:
         """
         Повышает статус приоритета предмета.
-
+    
         :param item_id: ID предмета.
         :type item_id: `str`
-
+    
         :param priority_status_id: ID статуса приоритета, на который нужно изменить.
         :type priority_status_id: `int` or `str`
-
+    
         :param payment_method_id: Метод оплаты, _опционально_.
         :type payment_method_id: `str`
-
+    
         :param transaction_provider_id: ID провайдера транзакции (LOCAL - с баланса кошелька на сайте).
         :type transaction_provider_id: `PlayerokAPI.enums.TransactionProviderIds`
         
@@ -1045,9 +1063,14 @@ class Account:
                     "transactionProviderData": {
                         "paymentMethodId": payment_method_id
                     },
-                    "transactionProviderId": transaction_provider_id
+                    # Правильно преобразуем Enum в строку
+                    "transactionProviderId": transaction_provider_id.name 
                 }
             }
         }
-        r = self.request("get", f"{self.base_url}/graphql", headers, payload).json()
+        # Изменяем метод с "get" на "post"
+        r = self.request("post", f"{self.base_url}/graphql", headers, payload).json()
         return item(r["data"]["increaseItemPriorityStatus"])
+            }
+            r = self.request("get", f"{self.base_url}/graphql", headers, payload).json()
+            return item(r["data"]["increaseItemPriorityStatus"])
