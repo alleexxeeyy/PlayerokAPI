@@ -24,7 +24,7 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent'
     ],
-    keywords='python playerok playerokapi api requests tls_requests',
+    keywords='python playerok playerokapi api requests cloudscrapper',
     project_urls={
         'Documentation': 'https://playerokapi.readthedocs.io/ru/latest/'
     },

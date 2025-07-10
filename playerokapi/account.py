@@ -1,5 +1,5 @@
 from __future__ import annotations
-import tls_requests
+import cloudscraper
 from typing import *
 import json
 
@@ -73,6 +73,8 @@ class Account:
         self.profile: AccountProfile | None = None
         """ Профиль аккаунта (не путать с профилем пользователя). \n\n_Заполняется при первом использовании get()_ """
 
+        self.scraper = cloudscraper.create_scraper()
+
         set_account(self) # сохранение объекта аккаунта
 
     def request(self, method: str, url: str, headers: dict[str, str], 
@@ -105,14 +107,13 @@ class Account:
         headers["x-apollo-operation-name"] = 'SomeName'
         headers["apollo-require-preflight"] = 'true'
 
-        client = tls_requests.Client(proxy=self.https_proxy, client_identifier="chrome_137", random_tls_extension_order=True)
         if method == "get":
-            r = client.get(url=url, params=payload, headers=headers, 
-                           timeout=self.requests_timeout)
+            r = self.scraper.get(url=url, params=payload, headers=headers, 
+                            timeout=self.requests_timeout)
         elif method == "post":
-            r = client.post(url=url, json=payload if not files else None, 
-                            data=payload if files else None, headers=headers, 
-                            files=files, timeout=self.requests_timeout)
+            r = self.scraper.post(url=url, json=payload if not files else None, 
+                             data=payload if files else None, headers=headers, 
+                             files=files, timeout=self.requests_timeout)
         else: 
             return
 
@@ -1049,5 +1050,5 @@ class Account:
                 }
             }
         }
-        r = self.request("get", f"{self.base_url}/graphql", headers, payload).json()
+        r = self.request("post", f"{self.base_url}/graphql", headers, payload).json()
         return item(r["data"]["increaseItemPriorityStatus"])
