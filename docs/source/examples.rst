@@ -12,10 +12,10 @@
 
 .. code-block:: python
 
-    from playeorkapi.account import Account
-    from playeorkapi.types import *
-    from playeorkapi.enums import *
-    from playeorkapi.listener.listener import EventListener
+    from playerokapi.account import Account
+    from playerokapi.types import *
+    from playerokapi.enums import *
+    from playerokapi.listener.listener import EventListener
 
     # --- инициализация аккаунта ---
     acc = Account(token="l0eSI6IjFlZTEzODQ2LWVlNGUtNjcxMC1kZDNjLTNiMmVhODIxMT...", 
@@ -45,9 +45,9 @@
 
 .. code-block:: python
 
-    from playeorkapi.account import Account
-    from playeorkapi.types import *
-    from playeorkapi.enums import *
+    from playerokapi.account import Account
+    from playerokapi.types import *
+    from playerokapi.enums import *
 
     # --- инициализация аккаунта ---
     acc = Account(token="l0eSI6IjFlZTEzODQ2LWVlNGUtNjcxMC1kZDNjLTNiMmVhODIxMT...", 
