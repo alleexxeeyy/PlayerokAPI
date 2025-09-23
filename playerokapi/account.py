@@ -214,8 +214,8 @@ class Account:
         }
         payload = {
             "operationName": "user",
-            "variables": json.dumps({"username": self.username}, ensure_ascii=False),
-            "extensions": json.dumps({"persistedQuery": {"version": 1, "sha256Hash": "6dff0b984047e79aa4e416f0f0cb78c5175f071e08c051b07b6cf698ecd7f865"}}, ensure_ascii=False)
+            "variables": json.dumps({"username": self.username, "hasSupportAccess": False}, ensure_ascii=False),
+            "extensions": json.dumps({"persistedQuery": {"version": 1, "sha256Hash": "3d6b0e2bea1da55fdeb4d25a64047315542da02271908712292433ed9de07a26"}}, ensure_ascii=False)
         }
         r = self.request("get", f"{self.base_url}/graphql", headers, payload).json()
         data: dict = r["data"]["user"]
@@ -243,8 +243,8 @@ class Account:
         }
         payload = {
             "operationName": "user",
-            "variables": json.dumps({"id": id, "username": username}, ensure_ascii=False),
-            "extensions": json.dumps({"persistedQuery": {"version": 1, "sha256Hash": "6dff0b984047e79aa4e416f0f0cb78c5175f071e08c051b07b6cf698ecd7f865"}}, ensure_ascii=False)
+            "variables": json.dumps({"id": id, "username": username, "hasSupportAccess": False}, ensure_ascii=False),
+            "extensions": json.dumps({"persistedQuery": {"version": 1, "sha256Hash": "3d6b0e2bea1da55fdeb4d25a64047315542da02271908712292433ed9de07a26"}}, ensure_ascii=False)
         }
         r = self.request("get", f"{self.base_url}/graphql", headers, payload).json()
         data: dict = r["data"]["user"]
@@ -308,8 +308,8 @@ class Account:
         }
         payload = {
             "operationName": "deal",
-            "variables": json.dumps({"id": deal_id}, ensure_ascii=False),
-            "extensions": json.dumps({"persistedQuery": {"version": 1, "sha256Hash": "65167f8820a53e382591a149453946df78de59299819b2e4a4a7b85b053fb3a3"}}, ensure_ascii=False)
+            "variables": json.dumps({"id": deal_id, "hasSupportAccess": False, "showForbiddenImage": True}, ensure_ascii=False),
+            "extensions": json.dumps({"persistedQuery": {"version": 1, "sha256Hash": "1a9015540fceaa065033750a98d3613ee1c8e73371cedd4d8ef0e7eb5b8ff470"}}, ensure_ascii=False)
         }
         r = self.request("get", f"{self.base_url}/graphql", headers, payload).json()
         return item_deal(r["data"]["deal"])
