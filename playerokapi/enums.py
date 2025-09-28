@@ -160,17 +160,19 @@ class ItemStatuses(Enum):
     """
     PENDING_APPROVAL = 0
     """ Ожидает принятия (на проверке модерацией). """
-    APPROVED = 1
+    PENDING_MODERATION = 1
+    """ Ожидает проверки изменений модерацией """
+    APPROVED = 2
     """ Активный (принятый модерацией). """
-    DECLINED = 2
+    DECLINED = 3
     """ Отклонённый. """
-    BLOCKED = 3
+    BLOCKED = 4
     """ Заблокированный. """
-    EXPIRED = 4
+    EXPIRED = 5
     """ Истёкший. """
-    SOLD = 5
+    SOLD = 6
     """ Проданный. """
-    DRAFT = 6
+    DRAFT = 7
     """ Черновик (если предмет не выставлен на продажу). """
 
 class ReviewStatuses(Enum):
