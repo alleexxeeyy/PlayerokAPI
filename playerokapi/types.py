@@ -492,7 +492,7 @@ class ItemDeal:
     :type review: `types.Review` or `None`
 
     :param obtaining_fields: Получаемые поля.
-    :type obtaining_fields: `types.GameCategoryDataField` or `None`
+    :type obtaining_fields: `list[types.GameCategoryDataField]` or `None`
 
     :param comment_from_buyer: Комментарий от покупателя.
     :type comment_from_buyer: `str` or `None`
@@ -501,7 +501,7 @@ class ItemDeal:
                  direction: ItemDealDirections, obtaining: str | None, has_problem: bool, report_problem_enabled: bool | None, 
                  completed_user: UserProfile | None, props: str | None, previous_status: ItemDealStatuses | None, 
                  completed_at: str, created_at: str, logs: list[ItemLog] | None, transaction: Transaction | None,
-                 user: UserProfile, chat: Chat | None, item: Item, review: Review | None, obtaining_fields: GameCategoryDataField | None,
+                 user: UserProfile, chat: Chat | None, item: Item, review: Review | None, obtaining_fields: list[GameCategoryDataField] | None,
                  comment_from_buyer: str | None):
         self.id: str = id
         """ ID сделки. """
@@ -541,7 +541,7 @@ class ItemDeal:
         """ Предмет сделки. """
         self.review: Review | None = review
         """ Отзыв по сделке. """
-        self.obtaining_fields: GameCategoryDataField | None = obtaining_fields
+        self.obtaining_fields: list[GameCategoryDataField] | None = obtaining_fields
         """ Получаемые поля. """
         self.comment_from_buyer: str | None = comment_from_buyer
         """ Комментарий от покупателя. """
