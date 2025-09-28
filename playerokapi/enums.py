@@ -52,6 +52,10 @@ class TransactionOperations(Enum):
     """ Оплата. """
     SELL = 1
     """ Продажа. """
+    ITEM_DEFAULT_PRIORITY = 2
+    """ Оплата бесплатного приоритета. """
+    ITEM_PREMIUM_PRIORITY = 3
+    """ Оплата премиум приоритета. """
 
 class TransactionDirections(Enum):
     """
@@ -161,7 +165,7 @@ class ItemStatuses(Enum):
     PENDING_APPROVAL = 0
     """ Ожидает принятия (на проверке модерацией). """
     PENDING_MODERATION = 1
-    """ Ожидает проверки изменений модерацией """
+    """ Ожидает проверки изменений модерацией. """
     APPROVED = 2
     """ Активный (принятый модерацией). """
     DECLINED = 3
