@@ -941,7 +941,7 @@ class Account:
         r = self.request("get", f"{self.base_url}/graphql", headers, payload).json()
         return item_profile_list(r["data"]["items"])
 
-    def get_item(self, id: str | None = None, slug: str | None = None) -> types.Item:
+    def get_item(self, id: str | None = None, slug: str | None = None) -> types.MyItem | types.Item | types.ItemProfile:
         """
         Получает предмет (товар).\n
         Можно получить по любому из двух параметров:
@@ -953,7 +953,7 @@ class Account:
         :type slug: `str` or `None`
         
         :return: Объект предмета.
-        :rtype: `PlayerokAPI.types.Item`
+        :rtype: `PlayerokAPI.types.MyItem` or `PlayerokAPI.types.Item` or `PlayerokAPI.types.ItemProfile`
         """
         headers = {"accept": "*/*"}
         payload = {
