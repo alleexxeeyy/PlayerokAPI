@@ -1,13 +1,9 @@
-from typing import Generator
-from logging import getLogger
-import time
-
 from ..account import Account
 from ..types import ChatList, ChatMessage, Chat
 from .events import *
+from typing import Generator
 
-
-logger = getLogger("playerokapi.listener")
+import time
 
 
 class EventListener:
@@ -222,6 +218,6 @@ class EventListener:
                 chats = next_chats
                 time.sleep(requests_delay)
             except Exception as e:
-                logger.error(f"Ошибка при получении ивентов: {e}")
+                print(f"Ошибка при получении ивентов: {e}")
                 time.sleep(requests_delay)
                 continue

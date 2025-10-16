@@ -12,7 +12,8 @@
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../..'))
+
+sys.path.insert(0, os.path.abspath("../.."))
 
 
 # -- Project information -----------------------------------------------------
@@ -29,7 +30,7 @@ extensions = [
     "sphinx.ext.doctest",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
-    'sphinx.ext.napoleon',
+    "sphinx.ext.napoleon",
     "sphinx.ext.intersphinx",
 ]
 
@@ -55,8 +56,8 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 
-html_permalinks_icon = '<span>#</span>'
-html_theme = 'furo'
+html_permalinks_icon = "<span>#</span>"
+html_theme = "furo"
 
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -64,4 +65,4 @@ html_theme = 'furo'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 
-autodoc_member_order = 'bysource'
+autodoc_member_order = "bysource"

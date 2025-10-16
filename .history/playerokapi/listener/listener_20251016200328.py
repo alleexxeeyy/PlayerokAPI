@@ -7,9 +7,6 @@ from ..types import ChatList, ChatMessage, Chat
 from .events import *
 
 
-logger = getLogger("playerokapi.listener")
-
-
 class EventListener:
     """
     Слушатель событий с Playerok.com.
@@ -222,6 +219,6 @@ class EventListener:
                 chats = next_chats
                 time.sleep(requests_delay)
             except Exception as e:
-                logger.error(f"Ошибка при получении ивентов: {e}")
+                print(f"Ошибка при получении ивентов: {e}")
                 time.sleep(requests_delay)
                 continue
