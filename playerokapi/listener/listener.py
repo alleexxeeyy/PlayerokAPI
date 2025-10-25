@@ -137,14 +137,14 @@ class EventListener:
     def _check_for_new_review(
         self, chat: Chat
     ) -> NewReviewEvent | None:
-        
         deal_id = chat.last_message.deal.id
         # проверка раз в N минут, или только если прошло время, или если что-то изменилось
-        if self._should_check_deal(deal_id):
-            deal = self.account.get_deal(deal_id)
-            if deal.review is not None:
-                del self.__review_check_deals[deal_id]
-                return NewReviewEvent(deal, chat)
+        if not self._should_check_deal(deal_id):
+            return
+        deal = self.account.get_deal(deal_id)
+        if deal.review is not None:
+            del self.__review_check_deals[deal_id]
+            return NewReviewEvent(deal, chat)
 
     def get_message_events(
         self, old_chats: ChatList, new_chats: ChatList, get_new_review_events: bool
