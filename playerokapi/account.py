@@ -1,10 +1,13 @@
 from __future__ import annotations
-import tls_requests
 from typing import *
 import json
 import random
 import time
 from logging import getLogger
+from typing import Literal
+
+import tls_client
+import tls_requests
 
 from . import types
 from .exceptions import *
@@ -12,9 +15,10 @@ from .parser import *
 from .enums import *
 
 
-def get_account() -> None | Account:
+def get_account() -> Account | None:
     if hasattr(Account, "instance"):
         return getattr(Account, "instance")
+
 
 class Account:
     """
@@ -23,11 +27,11 @@ class Account:
     :param token: Токен аккаунта.
     :type token: `str`
 
-    :param user_agent: Юзер-агент браузера, _опционально_.
+    :param user_agent: Юзер-агент браузера.
     :type user_agent: `str`
 
     :param proxy: IPV4 прокси в формате: `user:pass@ip:port` или `ip:port`, _опционально_.
-    :type proxy: `str`
+    :type proxy: `str` or `None`
 
     :param requests_timeout: Таймаут ожидания ответов на запросы.
     :type requests_timeout: `int`
@@ -58,6 +62,8 @@ class Account:
         """ Таймаут ожидания ответов на запросы. """
         self.proxy = proxy
         """ Прокси. """
+        self.__proxy_string = f"http://{self.proxy.replace('https://', '').replace('http://', '')}" if self.proxy else None
+        """ Строка прокси. """
         self.request_max_retries = request_max_retries
         """ Максимальное количество повторных попыток отправки запроса. """
 
@@ -95,10 +101,19 @@ class Account:
         self.profile: AccountProfile | None = None
         """ Профиль аккаунта (не путать с профилем пользователя). \n\n_Заполняется при первом использовании get()_ """
 
-        self.__client = tls_requests.Client(proxy=f"http://{self.proxy.replace('https://', '').replace('http://', '')}" if self.proxy else None)
+        self._refresh_clients()
         self.__logger = getLogger("playerokapi")
 
-    def request(self, method: str, url: str, headers: dict[str, str], 
+    def _refresh_clients(self):
+        self.__tls_requests = tls_requests.Client(
+            proxy=self.__proxy_string
+        )
+        self.__tls_client = tls_client.Session(
+            client_identifier="chrome_124",
+            random_tls_extension_order=True
+        )
+
+    def request(self, method: Literal["get", "post"], url: str, headers: dict[str, str], 
                 payload: dict[str, str] | None = None, files: dict | None = None) -> requests.Response:
         """
         Отправляет запрос на сервер playerok.com.
@@ -161,21 +176,41 @@ class Account:
         for k, v in _headers.items():
             if k not in headers.keys():
                 headers[k] = v
+
+        headers["cookie"] = f"token={self.token}"
+        headers["user-agent"] = self.user_agent if self.user_agent else random.choice(agents)
                 
         def make_req():
-            headers["cookie"] = f"token={self.token}"
-            headers["user-agent"] = self.user_agent if self.user_agent else random.choice(agents)
-
             if method == "get":
-                r = self.__client.get(url=url, params=payload, headers=headers, 
-                            timeout=self.requests_timeout)
+                r = self.__tls_client.get(
+                    url=url, 
+                    params=payload, 
+                    headers=headers, 
+                    timeout_seconds=self.requests_timeout,
+                    proxy=self.__proxy_string
+                )
             elif method == "post":
-                r = self.__client.post(url=url, json=payload if not files else None, 
-                                data=payload if files else None, headers=headers, 
-                                files=files, timeout=self.requests_timeout)
+                if files:
+                    r = self.__tls_requests.post(
+                        url=url, 
+                        json=payload if not files else None, 
+                        data=payload if files else None, 
+                        headers=headers, 
+                        files=files, 
+                        timeout=self.requests_timeout
+                    )
+                else:
+                    r = self.__tls_client.post(
+                        url=url, 
+                        json=payload,
+                        headers=headers, 
+                        timeout_seconds=self.requests_timeout,
+                        proxy=self.__proxy_string
+                    )
             else: 
                 return
             return r
+        
         resp = make_req()
 
         cloudflare_signatures = [
@@ -194,7 +229,7 @@ class Account:
                 delay = min(120.0, 5.0 * (2 ** attempt))
                 self.__logger.error(f"Cloudflare Detected, пробую отправить запрос снова через {delay} сек.")
                 time.sleep(delay)
-                self.__client = tls_requests.Client(proxy=f"http://{self.proxy.replace('https://', '').replace('http://', '')}" if self.proxy else None)
+                self._refresh_clients()
             else:
                 raise CloudflareDetectedException(resp)
         try:
@@ -211,7 +246,7 @@ class Account:
         Получает/обновляет данные об аккаунте.
 
         :return: Профиль аккаунта с обновлёнными данными.
-        :rtype: `playerokapi.Account`
+        :rtype: `playerokapi.account.Account`
         """
         headers = {"accept": "*/*"}
         payload = {
