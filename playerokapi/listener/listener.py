@@ -280,4 +280,4 @@ class EventListener:
                 chats = next_chats
             except Exception as e:
                 self.__logger.error(f"Ошибка при получении ивентов: {e}")
-            asyncio.sleep(requests_delay)
+            time.sleep(requests_delay)
