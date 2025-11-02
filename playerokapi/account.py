@@ -245,7 +245,7 @@ class Account:
         """
         Получает/обновляет данные об аккаунте.
 
-        :return: Профиль аккаунта с обновлёнными данными.
+        :return: Объект аккаунта с обновлёнными данными.
         :rtype: `playerokapi.account.Account`
         """
         headers = {"accept": "*/*"}

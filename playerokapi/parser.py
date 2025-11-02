@@ -33,16 +33,6 @@ def sbp_bank_member(data: dict) -> "SBPBankMember":
 
 def transaction_payment_method(data: dict) -> "TransactionPaymentMethod":
     from .types import TransactionPaymentMethod
-
-    if not data:
-        return None
-    return TransactionPaymentMethod(
-        
-    )
-
-
-def transaction_payment_method(data: dict) -> "TransactionPaymentMethod":
-    from .types import TransactionPaymentMethod
     from .parser import transaction_provider_props, transaction_provider_limits
 
     if not data:
@@ -541,7 +531,7 @@ def user_profile(data: dict) -> "UserProfile":
         return None
     u = UserProfile(
         id=data.get("id"),
-        username=data.get("username"),
+        username=data.get("username", "Поддержка"),
         role=UserTypes.__members__.get(data.get("role")),
         avatar_url=data.get("avatarURL"),
         is_online=data.get("isOnline"),
