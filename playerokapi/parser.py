@@ -1,9 +1,9 @@
 from typing import TYPE_CHECKING
 
+from .enums import *
+
 if TYPE_CHECKING:
     from .types import *
-
-from .enums import *
 
 
 def file(data: dict) -> "FileObject":
