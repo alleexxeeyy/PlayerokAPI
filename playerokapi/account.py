@@ -190,7 +190,7 @@ class Account:
                     url=url, 
                     params=payload, 
                     headers=headers, 
-                    #timeout_seconds=self.requests_timeout,
+                    timeout=self.requests_timeout,
                     proxy=self.__proxy_string
                 )
             elif method == "post":
@@ -208,7 +208,7 @@ class Account:
                         url=url, 
                         json=payload,
                         headers=headers, 
-                        #timeout_seconds=self.requests_timeout,
+                        timeout=self.requests_timeout,
                         proxy=self.__proxy_string
                     )
             return r
