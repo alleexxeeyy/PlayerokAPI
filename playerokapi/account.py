@@ -1010,7 +1010,7 @@ class Account:
         else: _item = None
         return _item
 
-    def get_item_priority_statuses(self, item_id: str, item_price: str) -> list[types.ItemPriorityStatus]:
+    def get_item_priority_statuses(self, item_id: str, item_price: int) -> list[types.ItemPriorityStatus]:
         """
         Получает статусы приоритетов для предмета.
 
@@ -1026,7 +1026,7 @@ class Account:
         headers = {"accept": "*/*"}
         payload = {
             "operationName": "itemPriorityStatuses",
-            "variables": json.dumps({"itemId": item_id, "price": int(item_price)}, ensure_ascii=False),
+            "variables": json.dumps({"itemId": item_id, "price": item_price}, ensure_ascii=False),
             "extensions": json.dumps({"persistedQuery": {"version": 1, "sha256Hash": "b922220c6f979537e1b99de6af8f5c13727daeff66727f679f07f986ce1c025a"}}, ensure_ascii=False)
         }
         r = self.request("get", f"{self.base_url}/graphql", headers, payload).json()
