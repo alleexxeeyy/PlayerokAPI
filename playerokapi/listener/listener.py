@@ -160,9 +160,7 @@ class EventListener:
         | DealRolledBackEvent
         | DealHasProblemEvent
         | DealProblemResolvedEvent
-        | DealStatusChangedEvent,
-        None,
-        None
+        | DealStatusChangedEvent
     ]:
         """
         Получает новые ивенты сообщений, сравнивая старые чаты с новыми полученными.
@@ -232,7 +230,7 @@ class EventListener:
                     if get_new_review_events and msg.deal and msg.deal.id not in self.__review_check_deals:
                         self.__review_check_deals.append(msg.deal.id)
                     self.__listened_messages.append(msg.id)
-                    events.append(self.parse_message_events(msg, new_chat))
+                    events.extend(self.parse_message_events(msg, new_chat))
         
         return events
 
@@ -287,10 +285,9 @@ class EventListener:
                     for event in events:
                         yield event
                 else:
-                    msg_events = self.get_message_events(chats, next_chats, get_new_review_events)
-                    for events in msg_events:
-                        for event in events:
-                            yield event
+                    events = self.get_message_events(chats, next_chats, get_new_review_events)
+                    for event in events:
+                        yield event
                 chats = next_chats
             except Exception as e:
                 self.__logger.error(f"Ошибка при получении ивентов: {e}")
