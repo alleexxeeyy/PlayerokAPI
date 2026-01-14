@@ -67,7 +67,6 @@ class EventListener:
         
         if message.text == "{{ITEM_PAID}}":
             actual_msg = self._get_actual_message(message.id, chat.id)
-            print(actual_msg)
             if actual_msg and actual_msg.deal is not None:
                 if actual_msg.deal.id not in self.review_check_deals:
                     self.review_check_deals.append(actual_msg.deal.id)
@@ -217,7 +216,7 @@ class EventListener:
         ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
         ssl_context.maximum_version = ssl.TLSVersion.TLSv1_3
 
-        chat_list = self.account.get_chats(count=24)
+        chat_list = self.account.get_chats(count=24) # инициализация первых 24 чатов
         self.chats = [chat for chat in chat_list.chats]
         for chat_ in self.chats:
             yield ChatInitializedEvent(chat_)
