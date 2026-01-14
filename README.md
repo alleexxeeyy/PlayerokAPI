@@ -35,7 +35,7 @@ acc = Account(token="l0eSI6IjFlZTEzODQ2LWVlNGUtNjcxMC1kZDNjLTNiMmVhODIxMT...",
 
 # --- инициализация и запуск слушателя событий ---
 listener = EventListener(acc)
-for event in listener.listen(requests_delay=2): # - указываем периодичность запросов в 2 сек, меньше не рекомендую
+for event in listener.listen(): # - указываем периодичность запросов в 2 сек, меньше не рекомендую
 
     if event.type is EventTypes.NEW_MESSAGE: # ловим тип ивента "Новое сообщение"
         if event.message.user.id != acc.id: # проверяем, если это сообщение было отправлено не от своего же лица
