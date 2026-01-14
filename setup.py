@@ -13,7 +13,7 @@ def req():
 
 setup(
     name="playerokapi",
-    version="1.0.0",
+    version="1.0.1",
     author="3xtra (alleexxeeyy)",
     author_email="alexey.work@gmail.com",
     description="Неофициальный API для работы с торговой площадкой Playerok, основанный на запросах",
@@ -27,7 +27,7 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    keywords="python playerok playerokapi api requests cloudscrapper",
+    keywords="python playerok playerokapi api requests websocket",
     project_urls={"Documentation": "https://playerokapi.readthedocs.io/ru/latest/"},
     python_requires=">=3.11",
 )
