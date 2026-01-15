@@ -51,10 +51,12 @@ class EventListener:
     def _get_actual_message(
         self, message_id: str, chat_id: str
     ):
-        time.sleep(4) # задержка, так как playerok не позволяет получать новые сообщения слишком быстро
-        msg_list = self.account.get_chat_messages(chat_id, count=12)
-        try: msg = [msg for msg in msg_list.messages if msg.id == message_id][0]
-        except: return
+        msg = None
+        for _ in range(3):
+            time.sleep(4)
+            msg_list = self.account.get_chat_messages(chat_id, count=12)
+            try: msg = [msg for msg in msg_list.messages if msg.id == message_id][0]
+            except: pass
         return msg
     
     def _parse_message_events(
@@ -356,17 +358,16 @@ class EventListener:
 
     def _wait_for_check_new_chats(self, delay=10):
         sleep_time = delay - (time.time() - self._last_chat_check)
-        if sleep_time >= 0: time.sleep(sleep_time)
+        if sleep_time > 0: time.sleep(sleep_time)
     
     def listen_new_deals(self): # слушает новые сделки в новосозданных чатах
         while True:
             self._possible_new_chat.wait()
             self._wait_for_check_new_chats()
 
-
             self._last_chat_check = time.time()
             self._possible_new_chat.clear()
-
+            
             try: chat_list = self.account.get_chats(count=5, type=ChatTypes.PM)
             except: continue
             known_chat_ids = [chat_.id for chat_ in self.chats]
@@ -374,7 +375,7 @@ class EventListener:
             for chat_ in chat_list.chats:
                 if chat_.id in known_chat_ids:
                     continue
-                
+
                 if chat_.last_message.text == "{{ITEM_PAID}}":
                     events = self._proccess_new_chat_message(chat_, chat_.last_message)
                     for event in events:
