@@ -256,12 +256,15 @@ class EventListener:
             "user-agent": self.account.user_agent
         }
 
-        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-        ssl_context.check_hostname = True
-        ssl_context.verify_mode = ssl.CERT_REQUIRED
-        ssl_context.load_default_certs()
-        ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
-        ssl_context.maximum_version = ssl.TLSVersion.TLSv1_3
+        try:
+            ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+            ssl_context.check_hostname = True
+            ssl_context.verify_mode = ssl.CERT_REQUIRED
+            ssl_context.load_default_certs()
+            ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
+            ssl_context.maximum_version = ssl.TLSVersion.TLSv1_3
+        except:
+            ssl_context = None
 
         chat_list = self.account.get_chats(count=24) # инициализация первых 24 чатов
         self.chats = [chat for chat in chat_list.chats]
@@ -271,7 +274,7 @@ class EventListener:
         while True:
             try:
                 self.ws = websocket.WebSocket(
-                    sslopt={"context": ssl_context}
+                    sslopt={"context": ssl_context} if ssl_context else None
                 )
                 self.ws.connect(
                     url="wss://ws.playerok.com/graphql",
