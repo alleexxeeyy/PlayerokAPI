@@ -51,13 +51,11 @@ class EventListener:
     def _get_actual_message(
         self, message_id: str, chat_id: str
     ):
-        msg = None
         for _ in range(3):
             time.sleep(4)
             msg_list = self.account.get_chat_messages(chat_id, count=12)
-            try: msg = [msg for msg in msg_list.messages if msg.id == message_id][0]
+            try: return [msg for msg in msg_list.messages if msg.id == message_id][0]
             except: pass
-        return msg
     
     def _parse_message_events(
         self, message: ChatMessage, chat: Chat
