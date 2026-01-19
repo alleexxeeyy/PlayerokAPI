@@ -2,18 +2,18 @@ from setuptools import setup, find_packages
 
 
 def readme():
-    with open("README.md", "r") as f:
+    with open("README.md", "r", encoding="utf-8") as f:
         return f.read()
 
 
 def req():
-    with open("requirements.txt", "r") as f:
+    with open("requirements.txt", "r", encoding="utf-8") as f:
         return f.read().splitlines()
 
 
 setup(
     name="playerokapi",
-    version="1.0.1",
+    version="1.0.2",
     author="3xtra (alleexxeeyy)",
     author_email="alexey.work@gmail.com",
     description="Неофициальный API для работы с торговой площадкой Playerok, основанный на запросах",
