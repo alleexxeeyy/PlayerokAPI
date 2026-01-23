@@ -287,7 +287,8 @@ class EventListener:
 
                 while True:
                     msg = self.ws.recv()
-                    msg_data = json.loads(msg)
+                    try: msg_data = json.loads(msg)
+                    except json.JSONDecodeError: continue
                     self.logger.debug(f"WS msg received: {msg_data}")
                     
                     if msg_data["type"] == "connection_ack":
