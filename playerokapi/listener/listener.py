@@ -317,9 +317,9 @@ class EventListener:
                             events = self._parse_message_events(_message, _chat)
                             for event in events:
                                 yield event
-            except websocket._exceptions.WebSocketException as e:
-                self.logger.error(f"Ошибка при подключении к WebSocket: {e}")
-                self.logger.error(f"Переподключаюсь к WebSocket...")
+            except Exception as e:
+                self.logger.debug(f"WS error: {e}")
+                self.logger.debug("reconnecting to WS...")
                 time.sleep(3)
 
     def _should_check_deal(self, deal_id, delay=30, max_tries=30) -> bool:
