@@ -14,8 +14,7 @@ import websocket
 from ..account import Account
 from ..types import (
     ChatMessage, 
-    Chat,
-    ItemDeal
+    Chat
 )
 from ..enums import ChatTypes
 from ..parser import (
@@ -24,6 +23,9 @@ from ..parser import (
 )
 from ..misc import QUERIES
 from .events import *
+
+
+logger = getLogger("playerokapi.listener")
 
 
 class EventListener:
@@ -49,8 +51,6 @@ class EventListener:
 
         self._possible_new_chat = ThreadingEvent()
         self._last_chat_check = 0
-
-        self.logger = getLogger("playerokapi.listener")
 
     def _get_actual_message(
         self, message_id: str, chat_id: str
@@ -272,7 +272,7 @@ class EventListener:
             try: msg_data = json.loads(msg)
             except json.JSONDecodeError: return
             
-            self.logger.debug(f"WS -> {msg_data}")
+            logger.debug(f"WS -> {msg_data}")
             
             if msg_data["type"] == "connection_ack":
                 self._subscribe_chat_updated()
@@ -294,7 +294,7 @@ class EventListener:
 
                     events = self._proccess_new_chat_message(_chat, _message)
                     for event in events:
-                        #yield event
+                        # yield event
                         self.q.put(event)
 
                 if "chatMessageCreated" in payload_data:
@@ -305,10 +305,10 @@ class EventListener:
 
                     events = self._parse_message_events(_message, _chat)
                     for event in events:
-                        #yield event
+                        # yield event
                         self.q.put(event)
         except Exception:
-            self.logger.debug(f"Ошибка обработки сообщения в WebSocket`е: {traceback.format_exc()}")
+            logger.debug(f"Ошибка обработки сообщения в WebSocket`е: {traceback.format_exc()}")
         
     def listen_new_messages(self):
         headers = {
@@ -322,6 +322,16 @@ class EventListener:
             "cookie": f"token={self.account.token}",
             "user-agent": self.account.user_agent
         }
+
+        proxy_host, proxy_port, proxy_auth = None, None, None
+        
+        if self.account.proxy:
+            if "@" in self.account.proxy:
+                proxy_host, proxy_port = self.account.proxy.split("@")[1].split(":")
+                proxy_username, proxy_password = self.account.proxy.split("@")[0].split(":")
+                proxy_auth = (proxy_username, proxy_password)
+            else:
+                proxy_host, proxy_port = self.account.proxy.split(":")
 
         # try:
         #     ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
@@ -347,7 +357,10 @@ class EventListener:
                 self.ws.connect(
                     url="wss://ws.playerok.com/graphql",
                     header=[f"{k}: {v}" for k, v in headers.items()],
-                    subprotocols=["graphql-transport-ws"]
+                    subprotocols=["graphql-transport-ws"],
+                    http_proxy_host=proxy_host,
+                    http_proxy_port=proxy_port,
+                    http_proxy_auth=proxy_auth
                 )
                 self._send_connection_init()          
 
@@ -398,7 +411,7 @@ class EventListener:
                         
                         yield NewReviewEvent(deal, deal.chat)
                 except:
-                    self.logger.debug(f"Ошибка проверки новых отзывов в сделке {deal_id}: {traceback.format_exc()}")
+                    logger.debug(f"Ошибка проверки новых отзывов в сделке {deal_id}: {traceback.format_exc()}")
             time.sleep(1)
 
     def _wait_for_check_new_chats(self, delay=10):
@@ -454,12 +467,11 @@ class EventListener:
                             for event in events:
                                 yield event
                     except:
-                        self.logger.debug(f"Ошибка получения истории для нового чата {chat.id}: {traceback.format_exc()}")
-
+                        logger.debug(f"Ошибка получения истории для нового чата {chat.id}: {traceback.format_exc()}")
             except websocket._exceptions.WebSocketException:
                 pass
             except:
-                self.logger.debug(f"Ошибка проверки новых сделок: {traceback.format_exc()}")
+                logger.debug(f"Ошибка проверки новых сделок: {traceback.format_exc()}")
     
     '''def listen_new_deals(self): # слушает новые сделки в новосозданных чатах
         while True:
@@ -491,7 +503,7 @@ class EventListener:
             except websocket._exceptions.WebSocketException:
                 pass
             except:
-                self.logger.debug(f"Ошибка проверки новых сделок: {traceback.format_exc()}")'''
+                logger.debug(f"Ошибка проверки новых сделок: {traceback.format_exc()}")'''
 
     '''def listen_deal_statuses(self): # слушает изменения статусов во всех активных сделках
         while True: # TODO: Доработать, проверить ещё раз на баги 
@@ -527,7 +539,7 @@ class EventListener:
                             for event in events:
                                 yield event
                     except:
-                        self.logger.debug(f"Ошибка проверки статусов в сделке {deal_id}: {traceback.format_exc()}")
+                        logger.debug(f"Ошибка проверки статусов в сделке {deal_id}: {traceback.format_exc()}")
                     time.sleep(8)
             time.sleep(1)'''
 
