@@ -462,18 +462,14 @@ class EventListener:
                         
                         for chat in chats:
                             last_msg = chat.last_message
-
-                            if (now - datetime.fromisoformat(chat.started_at).astimezone(timezone.utc)).total_seconds() <= 90:
+                            is_msg_processed = self._is_msg_processed(last_msg.id)
+                            
+                            if not is_msg_processed or (
+                                is_msg_processed
+                                and (now - datetime.fromisoformat(last_msg.created_at).astimezone(timezone.utc)).total_seconds() <= 90
+                            ):
                                 maybe_paid_msg = True
                                 break
-                            else:
-                                is_msg_processed = self._is_msg_processed(last_msg.id)
-                                if not is_msg_processed or (
-                                    is_msg_processed
-                                    and (now - datetime.fromisoformat(last_msg.created_at).astimezone(timezone.utc)).total_seconds() <= 90
-                                ):
-                                    maybe_paid_msg = True
-                                    break
                                     
                         if not maybe_paid_msg:
                             continue # если не найдено чатов с возможными новыми сделками - ищем эти чаты заново
