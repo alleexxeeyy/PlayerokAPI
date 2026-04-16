@@ -7,7 +7,6 @@ from .enums import *
 from .misc import PERSISTED_QUERIES
 
 
-
 class FileObject:
     """
     Объект файла.
