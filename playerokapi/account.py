@@ -7,6 +7,7 @@ import time
 import os
 import tempfile
 import shutil
+import uuid
 
 import tls_requests
 import curl_cffi
@@ -1051,12 +1052,50 @@ class Account:
 
         r = self.request("post", f"{self.base_url}/graphql", headers, payload).json()
         return chat(r["data"]["markChatAsRead"])
-    
+
+    def upload_chat_image_into_temporary_store(
+        self, 
+        photo_file_path: str,
+        chat_id: str
+    ) -> types.Chat:
+        """
+        Выкладывает изображение чата во временное хранилище
+        (перед отправкой сообщения с изображением).
+
+        :param chat_id: ID чата.
+        :type chat_id: `str`
+
+        :return: Объект чата с обновлёнными данными.
+        :rtype: `playerokapi.types.Chat`
+        """
+        headers = {"accept": "*/*"}
+        operations = {
+            "operationName": "uploadChatImageIntoTemporaryStore",
+            "query": QUERIES.get("uploadChatImageIntoTemporaryStore"),
+            "variables": {
+                "file": None,
+                "input": {
+                    "chatId": chat_id,
+                    "clientAttachmentId": str(uuid.uuid4())
+                }
+            }
+        }
+        
+        files = {"1": open(photo_file_path, "rb")}
+        map = {"1": ["variables.file"]} if photo_file_path else None
+        payload = {
+            "operations": json.dumps(operations), 
+            "map": json.dumps(map)
+        }
+        
+        r = self.request("post", f"{self.base_url}/graphql", headers, payload, files).json()
+        return temporary_attachment_upload_output(r["data"]["uploadChatImageIntoTemporaryStore"])
+
     def send_message(
         self, 
         chat_id: str, 
         text: str | None = None,
-        photo_file_path: str | None = None, 
+        photo_file_paths: list[str] | None = None, 
         mark_chat_as_read: bool = False
     ) -> types.ChatMessage:
         """
@@ -1069,8 +1108,8 @@ class Account:
         :param text: Текст сообщения, _опционально_.
         :type text: `str` or `None`
 
-        :param photo_file_path: Путь к файлу фотографии, _опционально_.
-        :type photo_file_path: `str` or `None`
+        :param photo_file_paths: Массив путей к файлам фотографий, _опционально_.
+        :type photo_file_paths: `list` of `str`
 
         :param mark_chat_as_read: Пометить чат, как прочитанный перед отправкой, _опционально_.
         :type mark_chat_as_read: `bool`
@@ -1078,31 +1117,31 @@ class Account:
         :return: Объект отправленного сообщения.
         :rtype: `playerokapi.types.ChatMessage`
         """
-        if not any((text, photo_file_path)):
-            raise TypeError("Не был передан ни один из обязательных аргументов: text, photo_file_path")
+        if not any((text, photo_file_paths)):
+            raise TypeError("Не был передан ни один из обязательных аргументов: text, photo_file_paths")
         
         if mark_chat_as_read:
             self.mark_chat_as_read(chat_id=chat_id)
+        
         headers = {"accept": "*/*"}
-        operations = {
+        payload = {
             "operationName": "createChatMessage",
-            "query": QUERIES.get("createChatMessageWithFile") if photo_file_path else QUERIES.get("createChatMessage"),
+            "query": QUERIES.get("createChatMessage"),
             "variables": {
                 "input": {
-                    "chatId": chat_id
+                    "chatId": chat_id,
+                    "imagesIds": [],
+                    "text": text or ""
                 }
             }
         }
-        if photo_file_path:
-            operations["variables"]["file"] = None
-        elif text:
-            operations["variables"]["input"]["text"] = text
         
-        files = {"1": open(photo_file_path, "rb")} if photo_file_path else None
-        map = {"1":["variables.file"]} if photo_file_path else None
-        payload = operations if not files else {"operations": json.dumps(operations), "map": json.dumps(map)}
+        for file_path in photo_file_paths:
+            image = self.upload_chat_image_into_temporary_store(file_path, chat_id)
+            if image:
+                payload["variables"]["input"]["imagesIds"].append(image.id)
         
-        r = self.request("post", f"{self.base_url}/graphql", headers, payload, files).json()
+        r = self.request("post", f"{self.base_url}/graphql", headers, payload).json()
         return chat_message(r["data"]["createChatMessage"])
  
     def create_item(
