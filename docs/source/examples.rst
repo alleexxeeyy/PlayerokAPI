@@ -21,7 +21,7 @@
 
     # ----- ИНИЦИАЛИЗАЦИЯ АККАУНТА -----
     acc = Account(
-        token="l0eSI6IjFlZTEzODQ2LWVlNGUtNjcxMC1kZDNjLTNiMmVhODIxMT...",
+        cookies="__ddg3=4L7yBmrBwMwKm15X;token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
         user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
     ).get()
 
@@ -63,7 +63,7 @@
 
     # ----- ИНИЦИАЛИЗАЦИЯ АККАУНТА -----
     acc = Account(
-        token="l0eSI6IjFlZTEzODQ2LWVlNGUtNjcxMC1kZDNjLTNiMmVhODIxMT...",
+        cookies="__ddg3=4L7yBmrBwMwKm15X;token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
         user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
     ).get()
 
