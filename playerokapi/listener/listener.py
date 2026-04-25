@@ -194,7 +194,7 @@ class EventListener:
             "type": "connection_init", 
             "payload": {
                 "x-gql-op": "ws-subscription",
-                "x-gql-path": "/chats/[id]",
+                "x-gql-path": "/chats",
                 "x-timezone-offset": -180
             }
         }))
@@ -219,6 +219,7 @@ class EventListener:
     def _subscribe_chat_marked_as_read(self):
         self.ws.send(json.dumps({
             "id": str(uuid.uuid4()), 
+            "type": "subscribe",
             "payload": {
                 "extensions": {},
                 "operationName": "chatMarkedAsRead",
@@ -229,13 +230,13 @@ class EventListener:
                     },
                     "showForbiddenImage": True
                 }
-            },
-            "type": "subscribe"
+            }
         }))
 
     def _subscribe_user_updated(self):
         self.ws.send(json.dumps({
             "id": str(uuid.uuid4()), 
+            "type": "subscribe",
             "payload": {
                 "extensions": {},
                 "operationName": "userUpdated",
@@ -243,8 +244,7 @@ class EventListener:
                 "variables": {
                     "userId": self.account.id
                 }
-            },
-            "type": "subscribe"
+            }
         }))
 
     def _subscribe_chat_message_created(self, chat_id):
@@ -252,6 +252,7 @@ class EventListener:
         self.chat_subscriptions[_uuid] = chat_id
         self.ws.send(json.dumps({
             "id": _uuid, 
+            "type": "subscribe",
             "payload": {
                 "extensions": {},
                 "operationName": "chatMessageCreated",
@@ -261,8 +262,7 @@ class EventListener:
                         "chatId": chat_id
                     }
                 }
-            },
-            "type": "subscribe"
+            }
         }))
 
     def _is_chat_subscribed(self, chat_id):
@@ -352,9 +352,10 @@ class EventListener:
     def listen_new_messages(self):
         headers = {
             "accept-encoding": "gzip, deflate, br, zstd",
-            "accept-language": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
+            "accept-language": "ru,en;q=0.9",
             "cache-control": "no-cache",
             "connection": "Upgrade",
+            "host": "ws.playerok.com",
             "origin": "https://playerok.com",
             "pragma": "no-cache",
             "sec-websocket-extensions": "permessage-deflate; client_max_window_bits",
