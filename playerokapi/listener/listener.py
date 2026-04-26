@@ -152,7 +152,7 @@ class EventListener:
                     DealStatusChangedEvent(actual_deal, chat)
                 ]
         
-        elif message.text == "{{DEAL_CONFIRMED}}":
+        elif message.text.startswith("{{DEAL_CONFIRMED") and message.text.endswith("}}"): # DEAL_CONFIRMED, DEAL_CONFIRMED_AUTOMATICALLY
             actual_msg = self._get_actual_message(message.id, chat.id) or message
             actual_deal = self._get_actual_deal(actual_msg.deal.id) or message.deal
             
