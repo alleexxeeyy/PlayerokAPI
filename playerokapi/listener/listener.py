@@ -63,7 +63,7 @@ class EventListener:
 
     def _get_actual_message(
         self, message_id: str, chat_id: str
-    ):
+    ) -> ChatMessage:
         for _ in range(3):
             time.sleep(6)
             
@@ -72,6 +72,15 @@ class EventListener:
             
             try: return [msg for msg in msg_list.messages if msg.id == message_id][0]
             except: pass
+
+    def _get_actual_deal( # получает свежие данные о сделки, ибо в новом ивенте она приходит устаревшая
+        self, deal_id: str
+    ) -> ItemDeal:
+        for _ in range(3):
+            try: return self.account.get_deal(deal_id)
+            except: pass
+            
+            time.sleep(3)
 
     def _set_active_deal(
         self, chat: Chat, deal: ItemDeal, status_date: datetime
@@ -95,14 +104,6 @@ class EventListener:
             msg for msg, _ in self.processed_msgs
             if msg.id == message_id
         ))
-
-    def _get_chat_processed_msgs(
-        self, chat_id: str
-    ):
-        return [
-            msg for msg, _chat_id in self.processed_msgs
-            if _chat_id == chat_id
-        ]
     
     def _parse_message_events(
         self, message: ChatMessage, chat: Chat
@@ -122,10 +123,12 @@ class EventListener:
         
         if message.text == "{{ITEM_PAID}}":
             actual_msg = self._get_actual_message(message.id, chat.id) or message
-            if actual_msg and actual_msg.deal:
-                deal_id = actual_msg.deal.id
+            actual_deal = self._get_actual_deal(actual_msg.deal.id) or message.deals
+            
+            if actual_msg and actual_deal:
+                deal_id = actual_deal.id
                 #status_date = self._parse_iso(actual_msg.created_at)
-                #self._set_active_deal(chat, actual_msg.deal, status_date)
+                #self._set_active_deal(chat, actual_deal, status_date)
                 if deal_id not in self.review_check_deals:
                     self.review_check_deals.append(deal_id)
                 if deal_id not in self.processed_deals:
@@ -133,58 +136,68 @@ class EventListener:
                 else:
                     return []
                 return [
-                    NewDealEvent(actual_msg.deal, chat), 
-                    ItemPaidEvent(actual_msg.deal, chat)
+                    NewDealEvent(actual_deal, chat), 
+                    ItemPaidEvent(actual_deal, chat)
                 ]
         
         elif message.text == "{{ITEM_SENT}}":
             actual_msg = self._get_actual_message(message.id, chat.id) or message
-            if actual_msg and actual_msg.deal:
+            actual_deal = self._get_actual_deal(actual_msg.deal.id) or message.deal
+            
+            if actual_msg and actual_deal:
                 #status_date = self._parse_iso(actual_msg.created_at)
-                #self._set_active_deal(chat, actual_msg.deal, status_date)
+                #self._set_active_deal(chat, actual_deal, status_date)
                 return [
-                    ItemSentEvent(actual_msg.deal, chat),
-                    DealStatusChangedEvent(actual_msg.deal, chat)
+                    ItemSentEvent(actual_deal, chat),
+                    DealStatusChangedEvent(actual_deal, chat)
                 ]
         
         elif message.text == "{{DEAL_CONFIRMED}}":
             actual_msg = self._get_actual_message(message.id, chat.id) or message
-            if actual_msg and actual_msg.deal:
+            actual_deal = self._get_actual_deal(actual_msg.deal.id) or message.deal
+            
+            if actual_msg and actual_deal:
                 #status_date = self._parse_iso(actual_msg.created_at)
-                #self._set_active_deal(chat, actual_msg.deal, status_date)
+                #self._set_active_deal(chat, actual_deal, status_date)
                 return [
-                    DealConfirmedEvent(actual_msg.deal, chat),
-                    DealStatusChangedEvent(actual_msg.deal, chat),
+                    DealConfirmedEvent(actual_deal, chat),
+                    DealStatusChangedEvent(actual_deal, chat),
                 ]
         
         elif message.text == "{{DEAL_ROLLED_BACK}}":
             actual_msg = self._get_actual_message(message.id, chat.id) or message
-            if actual_msg and actual_msg.deal:
+            actual_deal = self._get_actual_deal(actual_msg.deal.id) or message.deal
+            
+            if actual_msg and actual_deal:
                 #status_date = self._parse_iso(actual_msg.created_at)
-                #self._set_active_deal(chat, actual_msg.deal, status_date)
+                #self._set_active_deal(chat, actual_deal, status_date)
                 return [
-                    DealRolledBackEvent(actual_msg.deal, chat),
-                    DealStatusChangedEvent(actual_msg.deal, chat),
+                    DealRolledBackEvent(actual_deal, chat),
+                    DealStatusChangedEvent(actual_deal, chat),
                 ]
         
         elif message.text == "{{DEAL_HAS_PROBLEM}}":
             actual_msg = self._get_actual_message(message.id, chat.id) or message
-            if actual_msg and actual_msg.deal:
+            actual_deal = self._get_actual_deal(actual_msg.deal.id) or message.deal
+            
+            if actual_msg and actual_deal:
                 #status_date = self._parse_iso(actual_msg.created_at)
-                #self._set_active_deal(chat, actual_msg.deal, status_date)
+                #self._set_active_deal(chat, actual_deal, status_date)
                 return [
-                    DealHasProblemEvent(actual_msg.deal, chat),
-                    DealStatusChangedEvent(actual_msg.deal, chat),
+                    DealHasProblemEvent(actual_deal, chat),
+                    DealStatusChangedEvent(actual_deal, chat),
                 ]
         
         elif message.text == "{{DEAL_PROBLEM_RESOLVED}}":
             actual_msg = self._get_actual_message(message.id, chat.id) or message
-            if actual_msg and actual_msg.deal:
+            actual_deal = self._get_actual_deal(actual_msg.deal.id) or message.deal
+            
+            if actual_msg and actual_deal:
                 #status_date = self._parse_iso(actual_msg.created_at)
-                #self._set_active_deal(chat, actual_msg.deal, status_date)
+                #self._set_active_deal(chat, actual_deal, status_date)
                 return [
-                    DealProblemResolvedEvent(actual_msg.deal, chat),
-                    DealStatusChangedEvent(actual_msg.deal, chat),
+                    DealProblemResolvedEvent(actual_deal, chat),
+                    DealStatusChangedEvent(actual_deal, chat),
                 ]
         
         return [NewMessageEvent(message, chat)]
