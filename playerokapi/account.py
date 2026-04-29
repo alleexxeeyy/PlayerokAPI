@@ -276,12 +276,12 @@ class Account:
         if any(sig in resp.text for sig in sigs):
             raise BotCheckDetectedException()
 
-        cookie_headers = {
-            v.split("=")[0]: v.split("=")[1].split(";")[0] 
-            for k, v in resp.headers.multi_items() if k.lower() == "set-cookie"
-        }
-        for k, v in cookie_headers.items():
-            self.cookies[k] = v
+        # cookie_headers = {
+        #     v.split("=")[0]: v.split("=")[1].split(";")[0] 
+        #     for k, v in resp.headers.multi_items() if k.lower() == "set-cookie"
+        # }
+        # for k, v in cookie_headers.items():
+        #     self.cookies[k] = v
         
         json = {}
         try: json = resp.json()

@@ -2402,8 +2402,8 @@ class ChatMessage:
     :param game: Игра, к которой относится сообщение.
     :type game: `str` or `None`
 
-    :param file: Файл, прикреплённый к сообщению.
-    :type file: `playerokapi.types.FileObject` or `None`
+    :param images: Изображения, прикреплённые к сообщению.
+    :type images: `list[playerokapi.types.FileObject]` or `None`
 
     :param user: Пользователь, который отправил сообщение.
     :type user: `playerokapi.types.UserProfile`
@@ -2437,7 +2437,7 @@ class ChatMessage:
     """
 
     def __init__(self, id: str, text: str, created_at: str, deleted_at: str | None, is_read: bool, 
-                 is_suspicious: bool, is_bulk_messaging: bool, game: Game | None, file: FileObject | None,
+                 is_suspicious: bool, is_bulk_messaging: bool, game: Game | None, images: list[FileObject] | None,
                  user: UserProfile, deal: ItemDeal | None, item: ItemProfile | None, transaction: Transaction | None,
                  moderator: Moderator | None, event_by_user: UserProfile | None, event_to_user: UserProfile | None, 
                  is_auto_response: bool, event: Event | None, buttons: list[ChatMessageButton]):
@@ -2457,8 +2457,8 @@ class ChatMessage:
         """ Массовая ли это рассылка. """
         self.game: Game | None  = game
         """ Игра, к которой относится сообщение. """
-        self.file: FileObject | None  = file
-        """ Файл, прикреплённый к сообщению. """
+        self.images: list[FileObject] | None  = images
+        """ Изображения, прикреплённые к сообщению. """
         self.user: UserProfile = user
         """ Пользователь, который отправил сообщение. """
         self.deal: ItemDeal | None = deal
