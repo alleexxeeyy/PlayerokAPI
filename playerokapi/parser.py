@@ -943,7 +943,7 @@ def chat_message(data: dict) -> "ChatMessage":
         is_read=data.get("isRead"),
         is_suspicious=data.get("isSuspicious"),
         is_bulk_messaging=data.get("isBulkMessaging"),
-        images=[file(file) for file in data.get("images")],
+        images=[file(img) for img in data.get("images")],
         game=game(data.get("game")),
         user=user_profile(data.get("user")),
         deal=item_deal(data.get("deal")),
