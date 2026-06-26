@@ -1177,7 +1177,7 @@ class Account:
         description: str, 
         options: list[GameCategoryOption], 
         data_fields: list[GameCategoryDataField],
-        attachments: list[str]
+        attachments: list[str | bytes]  # ← было: list[str]
     ) -> types.Item:
         """
         Создаёт предмет (после создания помещается в черновик, а не сразу выставляется на продажу).
@@ -1205,8 +1205,8 @@ class Account:
             Поля с типом `OBTAINING_DATA` **заполнять и передавать не нужно**, так как эти данные будет указывать сам покупатель при оформлении предмета.
         :type data_fields: `list[playerokapi.types.GameCategoryDataField]`
 
-        :param attachments: Массив файлов-приложений предмета. Указываются пути к файлам.
-        :type attachments: `list[str]`
+        :param attachments: Массив файлов-приложений предмета. Пути к файлам или байты.
+        :type attachments: `list[str | bytes]`
 
         :return: Объект созданного предмета.
         :rtype: `playerokapi.types.Item`
@@ -1236,8 +1236,9 @@ class Account:
         files = {}
         
         for i, att in enumerate(attachments, start=1):
+            file_obj, filename = self._resolve_image_file(att)
             map[str(i)] = [f"variables.attachments.{i-1}"]
-            files[str(i)] = open(att, "rb")
+            files[str(i)] = (filename, file_obj)
         
         payload = {
             "operations": json.dumps(operations),
@@ -1256,7 +1257,7 @@ class Account:
         options: list[GameCategoryOption] | None = None, 
         data_fields: list[GameCategoryDataField] | None = None, 
         remove_attachments: list[str] | None = None, 
-        add_attachments: list[str] | None = None
+        add_attachments: list[str | bytes] | None = None  # ← было: list[str] | None
     ) -> types.Item:
         """
         Обновляет предмет аккаунта.
@@ -1284,8 +1285,8 @@ class Account:
         :param remove_attachments: Массив ID файлов-приложений предмета, которые нужно удалить.
         :type remove_attachments: `list[str]` or `None`
 
-        :param add_attachments: Массив файлов-приложений предмета, которые нужно добавить. Указываются пути к файлам.
-        :type add_attachments: `list[str]` or `None`
+        :param add_attachments: Массив файлов-приложений предмета, которые нужно добавить. Пути к файлам или байты.
+        :type add_attachments: `list[str | bytes]` or `None`
 
         :return: Объект обновлённого предмета.
         :rtype: `playerokapi.types.Item`
@@ -1316,8 +1317,9 @@ class Account:
         
         if add_attachments:
             for i, att in enumerate(add_attachments, start=1):
+                file_obj, filename = self._resolve_image_file(att)
                 map[str(i)] = [f"variables.addedAttachments.{i-1}"]
-                files[str(i)] = open(att, "rb")
+                files[str(i)] = (filename, file_obj)
         
         payload = {
             "operations": json.dumps(operations),
