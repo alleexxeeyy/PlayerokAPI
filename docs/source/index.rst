@@ -6,7 +6,7 @@
 **PlayerokAPI** - это неофициальный API для работы с торговой площадкой Playerok на ЯП python, основанный на запросах.
 
 `GitHub <https://github.com/alleexxeeyy/PlayerokAPI>`_      
-`Разработчик <https://t.me/alleexxeeyy>`_      
+`Разработчик <https://t.me/friedfluoride>`_      
 `Telegram канал <https://t.me/friedauto>`_
 
 Основное
