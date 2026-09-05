@@ -1,6 +1,6 @@
 ![alt text](https://github.com/alleexxeeyy/PlayerokAPI/blob/main/docs/source/_static/logo.png?raw=true)
 
-[![telegram](https://img.shields.io/badge/telegram-%D0%BA%D0%B0%D0%BD%D0%B0%D0%BB-blue?style=for-the-badge&logo=telegram)](https://t.me/alexeyproduction)
+[![telegram](https://img.shields.io/badge/telegram-%D0%BA%D0%B0%D0%BD%D0%B0%D0%BB-blue?style=for-the-badge&logo=telegram)](https://t.me/friedauto)
 [![bot](https://img.shields.io/badge/%F0%9F%A4%96%20playerok-%D0%B1%D0%BE%D1%82-blue?style=for-the-badge)](https://github.com/alleexxeeyy/playerok-universal)
 [![python](https://img.shields.io/badge/python-3.11+-yellow?style=for-the-badge&logo=python&link=https%3A%2F%2Fimg.shields.io%2Fbadge%2Ftelegram-%25D0%25BA%25D0%25B0%25D0%25BD%25D0%25B0%25D0%25BB-blue%3Fstyle%3Dfor-the-badge%26logo%3Dtelegram)](https://www.python.org/downloads/release/python-3119/)
 [![stars](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.github.com%2Frepos%2Falleexxeeyy%2FPlayerokAPI&query=%24.stargazers_count&style=for-the-badge&label=stars&color=43d433&logo=github)](https://github.com/alleexxeeyy/PlayerokAPI/stargazers)
@@ -141,5 +141,5 @@ new_item = acc.publish_item(item.id, free_status.id)
 
 ## Полезные ссылки
 - Разработчик: https://github.com/alleexxeeyy (в профиле есть актуальные ссылки на все контакты для связи)
-- Telegram канал: https://t.me/alexeyproduction
-- Telegram бот для покупки официальных модулей: https://t.me/alexey_production_bot
+- Telegram канал: https://t.me/friedauto
+- Telegram бот для покупки официальных модулей: https://t.me/friedshopbot
