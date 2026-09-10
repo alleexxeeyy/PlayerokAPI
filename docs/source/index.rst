@@ -7,7 +7,8 @@
 
 `GitHub <https://github.com/alleexxeeyy/PlayerokAPI>`_      
 `Разработчик <https://t.me/friedfluoride>`_      
-`Telegram канал <https://t.me/friedauto>`_
+`Telegram канал <https://t.me/friedauto>`_      
+`Канал Playerok бота <https://t.me/friedplayerok>`_
 
 Основное
 --------
