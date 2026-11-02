@@ -13,7 +13,7 @@ def req():
 
 setup(
     name="playerokapi",
-    version="1.1",
+    version="1.2",
     author="3xtra (alleexxeeyy)",
     author_email="alexey.work@gmail.com",
     description="Неофициальный API для работы с торговой площадкой Playerok, основанный на запросах",
