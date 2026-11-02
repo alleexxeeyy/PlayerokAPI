@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "playerokapi"
+dynamic = ["version"]
+description = "Неофициальный API для работы с торговой площадкой Playerok, основанный на запросах"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "3xtra (alleexxeeyy)", email = "alexey.work@gmail.com" }]
+requires-python = ">=3.11"
+keywords = ["python", "playerok", "playerokapi", "api", "asyncio", "websocket"]
+classifiers = [
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Framework :: AsyncIO",
+]
+dependencies = [
+    "curl-cffi>=0.13,<0.14",
+    "pydantic>=2.4,<3",
+    "magic-filter>=1.0.9,<1.1",
+    "requests>=2.32,<3",
+    "wrapper-tls-requests>=1.1.4,<2",
+    "websocket-client>=1.8,<2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-asyncio>=0.24"]
+
+[project.urls]
+Homepage = "https://github.com/alleexxeeyy/PlayerokAPI"
+Documentation = "https://playerokapi.readthedocs.io/ru/latest/"
+
+[tool.setuptools.dynamic]
+version = { attr = "playerokapi.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["playerokapi*"]
+
+[tool.setuptools.package-data]
+playerokapi = ["cacert.pem"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
