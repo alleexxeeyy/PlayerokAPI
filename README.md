@@ -9,135 +9,160 @@
 
 Неофициальный API для работы с торговой площадкой Playerok на ЯП python, основанный на запросах.
 
+> **Версия 2.0 — асинхронная.** Старый синхронный API (`Account`, `EventListener`) пока остаётся внутри пакета по старым путям и будет удалён в 3.0.
+> Как перейти — в [MIGRATION.md](MIGRATION.md).
+
 ## Навигация
 - [Документация](https://playerokapi.readthedocs.io/ru/latest/)
 - [Установка](#установка)
 - [Примеры использования](#примеры-использования)
+- [Переход с 1.x](MIGRATION.md)
 - [Полезные ссылки](#полезные-ссылки)
 
 ## Установка
-### С помощью pip
-Откройте командную строку и отправьте в неё команду `pip install git+https://github.com/alleexxeeyy/PlayerokAPI.git` 
+Нужен **Python 3.11+**.
 
-### Напрямую с github
-1. Скачайте репозиторий https://github.com/alleexxeeyy/PlayerokAPI
-2. Убедитесь, что у вас установлен **Python версии 3.11+**. Если не установлен, сделайте это, перейдя по ссылке https://www.python.org/downloads (при установке нажмите на пункт `Add to PATH`)
-3. Для установки зависимостей, напишите в командной строке `pip install -r requirements.txt`
+```
+pip install playerokapi
+```
+
+Последняя версия с GitHub: `pip install git+https://github.com/alleexxeeyy/PlayerokAPI.git`  
+Старая 1.x: `pip install git+https://github.com/alleexxeeyy/PlayerokAPI.git@v1`
 
 ## Примеры использования
 
 ### Быстрый старт
-Пример простого бота, который будет отвечать на несложные команды
+Бот, который отвечает на несложные команды. Хендлеры вешаются декораторами на роутер, фильтры пишутся через `F`.
 
 ```python
+import asyncio
 from datetime import datetime
 
-from playerokapi.account import Account
-from playerokapi.types import *
-from playerokapi.enums import *
-from playerokapi.listener.listener import EventListener
+from playerokapi import Client, Dispatcher, Router, F, NewMessageEvent
 
-# ----- ИНИЦИАЛИЗАЦИЯ АККАУНТА -----
-acc = Account(
-    cookies="__ddg3=4L7yBmrBwMwKm15X;token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
-).get()
+router = Router()
 
-# ----- ЗАПУСК СЛУШАТЕЛЯ СОБЫТИЙ -----
-listener = EventListener(acc)
 
-for event in listener.listen():
-    if event.type is EventTypes.NEW_MESSAGE: # ловим тип ивента "Новое сообщение"
-        if event.message.user.id != acc.id: # проверяем, если это сообщение было отправлено не от своего же лица
-            if event.message.text == "!команды": # проверяем, если текст сообщение - нужная наша команда
-                acc.send_message(
-                    chat_id=event.chat.id, 
-                    text="🤖 Доступные команды:\n- !привет - отправляет приветствие\n- !дата - показывает текущую дату и время"
-                ) # отправляем сообщение
-            if event.message.text == "!привет":
-                acc.send_message(
-                    chat_id=event.chat.id, 
-                    text="👋 Привет, я бот для Playerok!\n- Узнать команды - !команды"
-                )
-            if event.message.text == "!дата":
-                acc.send_message(
-                    chat_id=event.chat.id, 
-                    text=f"📅 Текущая дата: {datetime.now().strftime("%d/%m/%Y, %H:%M:%S")}"
-                )
+@router.new_message(F.message.text == "!команды")
+async def on_commands(event: NewMessageEvent):
+    await event.answer("🤖 Доступные команды:\n- !привет - отправляет приветствие\n- !дата - показывает текущую дату и время")
+
+
+@router.new_message(F.message.text == "!привет")
+async def on_hello(event: NewMessageEvent):
+    await event.answer("👋 Привет, я бот для Playerok!\n- Узнать команды - !команды")
+
+
+@router.new_message(F.message.text == "!дата")
+async def on_date(event: NewMessageEvent):
+    await event.answer(f"📅 Текущая дата: {datetime.now().strftime('%d/%m/%Y, %H:%M:%S')}")
+
+
+async def main():
+    async with Client(
+        cookies="token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; __ddg1_=...",
+        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+    ) as client:
+        dp = Dispatcher(client)
+        dp.include_router(router)
+        await dp.run()
+
+
+asyncio.run(main())
 ```
 
-### Получение предметов пользователя
-Пример простого кода, который получит последние 24 предмета пользователя «LexeyLex» и выведет в консоль их названия
+Свои сообщения в события не попадают, поэтому проверять `event.message.user.id != client.id` не нужно.
 
+Куки берите из браузера, в котором вы авторизованы на Playerok, целиком. Куки защиты DDoS-Guard (`__ddg*`) привязаны к IP и User-Agent, поэтому запросы должны идти с того же IP и с тем же `user_agent`.
+
+### Новая сделка
 ```python
-user = acc.get_user(username="LexeyLex")
-item_list = user.get_items()
+from playerokapi import Client, NewDealEvent, DealStatus
 
-for item in item_list.items:
-    print(item.name)
+
+@router.new_deal()
+async def on_new_deal(event: NewDealEvent, client: Client):
+    deal = event.deal
+    print(f"Новая сделка {deal.id}: {deal.item.name} за {deal.item.price} ₽ от {deal.user.username}")
+    await event.answer("Спасибо за покупку! Сейчас всё выдам.")
+    await client.update_deal(deal.id, DealStatus.SENT)
+```
+
+В хендлер можно получить по имени параметра `event`, `client`, `dispatcher`, `router` и всё, что вы положили в диспетчер: `dp["config"] = config` → параметр `config`.
+
+### События без роутеров
+```python
+async with Client(cookies="...") as client:
+    async for event in client.listen():
+        if isinstance(event, NewMessageEvent):
+            print(event.chat.id, event.message.text)
 ```
 
 ### Получение сообщений чата
-Пример простого кода, который получит последние 24 сообщения в чате с пользователем «LexeyLex» и выведет в их в консоль
+Последние 24 сообщения в чате с пользователем «LexeyLex»
 
 ```python
-chat = acc.get_chat_by_username("LexeyLex")
-chat_message_list = acc.get_chat_messages(chat.id)
+chat = await client.get_chat_by_username("LexeyLex")
+page = await client.get_chat_messages(chat.id)
 
-for message in chat_message_list.messages:
-    print(message.text)
+for message in page.items:
+    print(message.created_at, message.text)
+```
+
+Все списки возвращаются страницей `Page`: объекты лежат в `page.items`, курсор следующей страницы — в `page.page_info.end_cursor`.
+
+### Свои предметы
+```python
+from playerokapi import ItemStatus
+
+page = await client.get_my_items(statuses=[ItemStatus.APPROVED, ItemStatus.EXPIRED])
+for item in page.items:
+    print(item.name, item.price, item.status)
 ```
 
 ### Создание и публикация предмета
-Пример кода, который создаст и опубликует предмет в приложении «Telegram», категории «Подарки (NFT)»
+Предмет в приложении «Telegram», категории «Подарки (NFT)»
 
 ```python
-from playerokapi.account import Account
-from playerokapi.types import *
-from playerokapi.enums import *
+game = await client.get_game(slug="telegram")
 
+_category = next(cat for cat in game.categories if cat.name == "Подарки (NFT)")
+category = await client.get_game_category(id=_category.id)
 
-# ----- ИНИЦИАЛИЗАЦИЯ АККАУНТА -----
-acc = Account(
-    cookies="__ddg3=4L7yBmrBwMwKm15X;token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
-).get()
+obtaining_types = await client.get_game_category_obtaining_types(category.id)
+obt_type = next(obt for obt in obtaining_types.items if obt.name == "Подарок")
 
-# ----- ПОЛУЧЕНИЕ ДАННЫХ О ТОВАРЕ -----
-game = acc.get_game(slug="telegram") # получаем нужную игру
+option = next(opt for opt in category.options if opt.value == "heart")
 
-_category = next((cat for cat in game.categories if cat.name == "Подарки (NFT)"), None) 
-category = acc.get_game_category(_category.id) # получаем полные даные о категории
+data_fields = await client.get_game_category_data_fields(category.id, obt_type.id)
+data_field = next(df for df in data_fields.items if df.label == "Комментарий")
+data_field.value = "Напишу вам в ТГ после оформления заказа"
 
-obt_list = acc.get_game_category_obtaining_types(category.id)
-obt_type = next((obt for obt in obt_list.obtaining_types if obt.name == "Подарок"), None)
-
-option = next((opt for opt in category.options if opt.value == "heart"), None)
-# тут могут быть прочие опции...
-
-df_list = acc.get_game_category_data_fields(category.id, obt_type.id)
-data_field = next((df for df in df_list.data_fields if df.label == "Комментарий"), None) # берём поле с обязательным данным (в этом случае только одно, чаще всего несколько необходимых)
-data_field.value = "Напишу вам в ТГ после оформления заказа" # задаём значение этому полю, так как оно обязательное
-# тут могут быть прочие обязательные поля с данными...
-
-banner = "banner.png"
-
-# ----- СОЗДАНИЕ ПРЕДМЕТА -----
-item = acc.create_item(
-    game_category_id=category.id,                                    # указываем id категории игры
-    obtaining_type_id=obt_type.id,                                   # указываем id типа получения предмета
-    name='Подарок "❤️ Сердце" (13 ⭐) / Авто-Выдача 🤖',            # указываем название предмета
-    price=90,                                                        # указываем цену предмета
-    description="Выдача осуществляется без захода на ваш аккаунт.",  # указываем описание предмета
-    options=[option],                                                # указываем опции предмета
-    data_fields=[data_field],                                        # указываем поля с данными предмета
-    attachments=[banner]                                             # указываем файлы-приложения предмета (баннер и прочие изображения)
+item = await client.create_item(
+    game_category_id=category.id,
+    obtaining_type_id=obt_type.id,
+    name='Подарок "❤️ Сердце" (13 ⭐) / Авто-Выдача 🤖',
+    price=90,
+    description="Выдача осуществляется без захода на ваш аккаунт.",
+    options=[option],
+    data_fields=[data_field],
+    attachments=["banner.png"]
 )
 
-# ----- ПУБЛИКАЦИЯ ПРЕДМЕТА -----
-statuses = acc.get_item_priority_statuses(item.id, item.price)
-free_status = next((status for status in statuses if status.price == 0), None)
-new_item = acc.publish_item(item.id, free_status.id)
+statuses = await client.get_item_priority_statuses(item.id, item.price)
+free_status = next(status for status in statuses if status.price == 0)
+await client.publish_item(item.id, free_status.id)
+```
+
+### Вызов из обычных потоков
+Если часть кода синхронная и работает в отдельных потоках, используйте `ThreadsafeClient` — те же методы, но без `await`:
+
+```python
+from playerokapi import ThreadsafeClient
+
+sync_client = ThreadsafeClient(client, asyncio.get_running_loop())
+# в другом потоке:
+chats = sync_client.get_chats()
 ```
 
 ## Полезные ссылки
