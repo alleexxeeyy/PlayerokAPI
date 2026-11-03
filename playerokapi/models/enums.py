@@ -217,6 +217,8 @@ class ItemStatus(StrEnum):
     """Проданный."""
     DRAFT = "DRAFT"
     """Черновик (если предмет не выставлен на продажу)."""
+    DISCONTINUED = "DISCONTINUED"
+    """Снятый с продажи."""
 
 
 class ReviewStatus(StrEnum):

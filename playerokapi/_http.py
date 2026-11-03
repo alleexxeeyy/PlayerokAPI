@@ -96,11 +96,11 @@ def _is_json(resp: Response) -> bool:
     return "json" in (resp.headers.get("content-type") or "")
 
 
-def _rate_limit_reason(resp: Response, idempotent: bool) -> str | None:
+def _rate_limit_reason(resp: Response, idempotent: bool, inspect_body: bool = True) -> str | None:
     reason = None
     if resp.status_code in RATE_LIMIT_STATUSES:
         reason = RATE_LIMIT_STATUSES[resp.status_code]
-    elif not _is_json(resp):
+    elif inspect_body and not _is_json(resp):
         head = (resp.text or "")[:1200].lower()
         reason = next((s for s in RATE_LIMIT_STATUSES.values() if s.lower() in head), None)
     if reason == RATE_LIMIT_STATUSES[502] and not idempotent:
@@ -303,7 +303,8 @@ class Transport:
         json: dict | None = None,
         form: dict[str, str] | None = None,
         files: list[FilePart] | None = None,
-        idempotent: bool = True
+        idempotent: bool = True,
+        inspect_body: bool = True
     ) -> Response:
         semaphore = self._bind_loop()
         for attempt in range(self.rate_limit_retries):
@@ -312,7 +313,7 @@ class Transport:
                 await self._wait_pause()
                 resp = await self._send(method, url, headers, params, json, form, files, idempotent)
 
-            reason = _rate_limit_reason(resp, idempotent)
+            reason = _rate_limit_reason(resp, idempotent, inspect_body)
             if not reason or attempt == self.rate_limit_retries - 1:
                 break
             # пауза общая: пока Playerok ограничивает, не шлём ничего, но и семафор не держим
@@ -320,7 +321,7 @@ class Transport:
             self._pause_until = max(self._pause_until, _now() + delay)
             logger.debug(f"{url} — {reason}. Пробую отправить запрос снова через {delay:.1f} сек.")
 
-        if not _is_json(resp) and any(sign in (resp.text or "") for sign in BOT_CHECK_SIGNS):
+        if inspect_body and not _is_json(resp) and any(sign in (resp.text or "") for sign in BOT_CHECK_SIGNS):
             raise BotCheckError(url)
         return resp
 
