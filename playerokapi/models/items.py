@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Annotated, Any, Union
 
-from pydantic import Discriminator, Field, Tag
+from pydantic import Field, PlainValidator, SerializeAsAny
 
 from .base import PlayerokModel, Tolerant
 from .common import FileObject, Moderator
@@ -274,7 +274,7 @@ class ItemProfile(PlayerokModel):
     """ Является ли предмет автоматическим. """
 
 
-_ITEM_TAGS = {
+_ITEM_CLASSES = {
     "MyItem": "MyItem",
     "Item": "Item",
     "ForeignItem": "Item",
@@ -284,21 +284,16 @@ _ITEM_TAGS = {
 }
 
 
-def _item_tag(value: Any) -> str | None:
-    if isinstance(value, dict):
-        typename = value.get("__typename") or value.get("typename")
-        return _ITEM_TAGS.get(typename) if isinstance(typename, str) else None
-    for cls in (MyItem, Item, ItemProfile):
-        if isinstance(value, cls):
-            return cls.__name__
-    return None
+def _parse_item(value: Any) -> MyItem | Item | ItemProfile:
+    if isinstance(value, (MyItem, Item, ItemProfile)):
+        return value
+    if not isinstance(value, dict):
+        raise ValueError(f"предмет должен быть объектом, а не {type(value).__name__}")
+    typename = value.get("__typename") or value.get("typename")
+    name = _ITEM_CLASSES.get(typename) if isinstance(typename, str) else None
+    if name is None:
+        raise ValueError(f"неизвестный тип предмета: {typename!r}")
+    return {"MyItem": MyItem, "Item": Item, "ItemProfile": ItemProfile}[name].model_validate(value)
 
 
-AnyItem = Tolerant[Annotated[
-    Union[
-        Annotated[MyItem, Tag("MyItem")],
-        Annotated[Item, Tag("Item")],
-        Annotated[ItemProfile, Tag("ItemProfile")],
-    ],
-    Discriminator(_item_tag),
-]]
+AnyItem = Tolerant[SerializeAsAny[Annotated[Union[MyItem, Item, ItemProfile], PlainValidator(_parse_item)]]]
