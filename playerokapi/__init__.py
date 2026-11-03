@@ -8,10 +8,18 @@ _EXPORTS = {
     ".client": ("Client",),
     ".threadsafe": ("ThreadsafeClient",),
     ".errors": ("PlayerokError", "NetworkError", "BotCheckError", "HTTPError", "GraphQLError", "UnauthorizedError"),
+    ".dispatcher": (
+        "Dispatcher", "Router", "F", "EventType", "EventSource", "BaseEvent",
+        "ChatInitializedEvent", "NewMessageEvent", "NewDealEvent", "NewReviewEvent", "ItemPaidEvent", "ItemSentEvent",
+        "DealConfirmedEvent", "DealRolledBackEvent", "DealHasProblemEvent", "DealProblemResolvedEvent", "DealStatusChangedEvent",
+    ),
 }
 
 if TYPE_CHECKING:
+    from magic_filter import F
+
     from .client import Client
+    from .dispatcher import *
     from .errors import BotCheckError, GraphQLError, HTTPError, NetworkError, PlayerokError, UnauthorizedError
     from .models import *
     from .threadsafe import ThreadsafeClient
