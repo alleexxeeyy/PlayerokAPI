@@ -23,11 +23,12 @@
 Нужен **Python 3.11+**.
 
 ```
-pip install playerokapi
+pip install git+https://github.com/alleexxeeyy/PlayerokAPI.git
 ```
 
-Последняя версия с GitHub: `pip install git+https://github.com/alleexxeeyy/PlayerokAPI.git`  
 Старая 1.x: `pip install git+https://github.com/alleexxeeyy/PlayerokAPI.git@v1`
+
+> Пакет `playerokapi` на PyPI — **чужая** библиотека с тем же именем, не ставьте его вместо этой.
 
 ## Примеры использования
 
