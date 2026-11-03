@@ -46,7 +46,34 @@ def test_technical_values_survive():
     assert out["operation"] == "userChats"
 
 
+def test_enum_values_under_id_keys_survive():
+    out = Anonymizer(seed=1)({"providerId": "SBP", "id": "MIR", "userId": "u1", "chatId": "abc123"})
+    assert out["providerId"] == "SBP"
+    assert out["id"] == "MIR"
+    assert out["userId"] != "u1"
+    assert out["chatId"] != "abc123"
+
+
 def test_same_value_maps_consistently():
     out = Anonymizer(seed=1)(REAL)
     assert out["id"] == out["user"]["id"]
     assert len(str(out["item"]["price"])) == len("15990")
+
+
+def test_text_starting_with_date_is_replaced():
+    out = Anonymizer(seed=1)({"comment": "2026-10-04T09:24 встреча у метро", "createdAt": "2026-10-04T09:24:41.409Z"})
+    assert "метро" not in out["comment"]
+    assert out["createdAt"] == "2026-10-04T09:24:41.409Z"
+
+
+def test_uppercase_words_in_text_fields_are_replaced():
+    out = Anonymizer(seed=1)({"fragmentUsername": "IVANOV", "statusDescription": "BLOCKED", "filename": "PASSPORT"})
+    assert out["fragmentUsername"] != "IVANOV"
+    assert out["statusDescription"] != "BLOCKED"
+    assert out["filename"] != "PASSPORT"
+
+
+def test_int_and_float_do_not_share_cache():
+    out = Anonymizer(seed=1)([{"value": 81}, {"value": 81.0}])
+    assert type(out[0]["value"]) is int
+    assert type(out[1]["value"]) is float
