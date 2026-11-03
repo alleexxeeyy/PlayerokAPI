@@ -10,7 +10,7 @@ from typing import Any, TypeVar
 from pydantic import TypeAdapter
 
 from .. import _gql
-from .._http import Transport, parse_cookies
+from .._http import RequestGate, Transport, parse_cookies
 from ..errors import HTTPError, PlayerokError, UnauthorizedError
 from ..models import AccountProfile
 
@@ -101,6 +101,9 @@ class BaseClient:
 
     :param max_concurrent_requests: Сколько запросов можно отправлять одновременно (по умолчанию по одному, как в 1.x).
     :type max_concurrent_requests: `int`
+
+    :param request_gate: Общий лимит запросов с другими клиентами этого аккаунта (тогда `max_concurrent_requests` берётся из него), _опционально_.
+    :type request_gate: `playerokapi.RequestGate` or `None`
     """
 
     def __init__(
@@ -110,7 +113,8 @@ class BaseClient:
         user_agent: str | None = None,
         proxy: str | None = None,
         timeout: float = 15,
-        max_concurrent_requests: int = 1
+        max_concurrent_requests: int = 1,
+        request_gate: RequestGate | None = None
     ):
         jar = {k: v for k, v in parse_cookies(cookies).items() if v} if cookies else {}
         if token and not jar.get("token"):
@@ -123,7 +127,8 @@ class BaseClient:
             user_agent=user_agent,
             proxy=proxy,
             timeout=timeout,
-            max_concurrent_requests=max_concurrent_requests
+            max_concurrent_requests=request_gate.max_concurrent_requests if request_gate else max_concurrent_requests,
+            request_gate=request_gate
         )
         self._refresh_lock: asyncio.Lock | None = None
 

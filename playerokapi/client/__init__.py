@@ -44,6 +44,9 @@ class Client(ChatsMixin, DealsMixin, ItemsMixin, GamesMixin, FinanceMixin, Users
 
     :param max_concurrent_requests: Сколько запросов можно отправлять одновременно (по умолчанию по одному, как в 1.x).
     :type max_concurrent_requests: `int`
+
+    :param request_gate: Общий лимит запросов с другими клиентами этого аккаунта (тогда `max_concurrent_requests` берётся из него), _опционально_.
+    :type request_gate: `playerokapi.RequestGate` or `None`
     """
 
     def listen(self, new_messages: bool = True, new_reviews: bool = True) -> AsyncIterator[BaseEvent]:

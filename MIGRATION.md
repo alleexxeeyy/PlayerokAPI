@@ -74,6 +74,19 @@ sync_client = ThreadsafeClient(client, loop)   # loop — event loop, в кот�
 sync_client.send_message(chat_id, "привет")    # из любого потока, кроме потока самого loop
 ```
 
+### Лимит запросов
+Playerok отвечает 429, если слать запросы слишком часто. Поэтому `Client` по умолчанию отправляет запросы строго по одному (как 1.x со своим локом) и на 429/502/503 ставит на паузу все свои запросы.
+Если в одном процессе на одном аккаунте работают и `Account` 1.x, и `Client` 2.0 (или несколько клиентов) — дайте им общий `RequestGate`, иначе запросы пойдут параллельно:
+```python
+from playerokapi import Client, RequestGate
+
+gate = RequestGate()                      # 1 запрос одновременно на всех
+client = Client(cookies=cookies, request_gate=gate)
+
+with gate.hold():                         # синхронный код 1.x в своём потоке
+    acc.get_deal(deal_id)
+```
+
 ## Таблицы изменений
 
 ### Классы

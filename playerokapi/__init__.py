@@ -7,6 +7,7 @@ __version__ = "2.0.0.dev0"
 _EXPORTS = {
     ".client": ("Client",),
     ".threadsafe": ("ThreadsafeClient",),
+    "._http": ("RequestGate",),
     ".errors": ("PlayerokError", "NetworkError", "BotCheckError", "HTTPError", "GraphQLError", "UnauthorizedError"),
     ".dispatcher": (
         "Dispatcher", "Router", "F", "EventType", "EventSource", "BaseEvent",
@@ -22,6 +23,7 @@ if TYPE_CHECKING:
     from .dispatcher import *
     from .errors import BotCheckError, GraphQLError, HTTPError, NetworkError, PlayerokError, UnauthorizedError
     from .models import *
+    from ._http import RequestGate
     from .threadsafe import ThreadsafeClient
 
 
