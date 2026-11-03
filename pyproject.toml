@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=69", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,7 +7,8 @@ name = "playerokapi"
 dynamic = ["version"]
 description = "Неофициальный API для работы с торговой площадкой Playerok, основанный на запросах"
 readme = "README.md"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{ name = "3xtra (alleexxeeyy)", email = "alexey.work@gmail.com" }]
 requires-python = ">=3.11"
 keywords = ["python", "playerok", "playerokapi", "api", "asyncio", "websocket"]
@@ -15,7 +16,6 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Framework :: AsyncIO",
 ]
