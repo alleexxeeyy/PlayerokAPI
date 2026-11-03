@@ -128,7 +128,7 @@ class BaseClient:
         self._refresh_lock: asyncio.Lock | None = None
 
         self.me: AccountProfile | None = None
-        """ Профиль аккаунта. \n\n_Заполняется при входе в `async with` или вызове `refresh()`_ """
+        """ Профиль аккаунта. \n\n_Заполняется при входе в async with или вызове refresh()_ """
 
     @property
     def id(self) -> str | None:

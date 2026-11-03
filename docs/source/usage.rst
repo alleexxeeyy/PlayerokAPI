@@ -18,5 +18,11 @@
 
    (.venv) $ pip install git+https://github.com/alleexxeeyy/PlayerokAPI.git
 
+Нужен Python 3.11+. Старая синхронная 1.x:
+
+.. code-block:: console
+
+   (.venv) $ pip install git+https://github.com/alleexxeeyy/PlayerokAPI.git@v1
+
 Готово! Теперь вы можете пользоваться библиотекой.
 Посетите раздел :doc:`examples`, чтобы приступить к работе

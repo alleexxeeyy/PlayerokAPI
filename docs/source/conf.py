@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.abspath("../.."))
 # -- Project information -----------------------------------------------------
 
 project = "PlayerokAPI"
-copyright = "2025, alleexxeeyy"
+copyright = "2025-2026, alleexxeeyy"
 author = "alleexxeeyy"
 
 
@@ -32,6 +32,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
     "sphinx.ext.intersphinx",
+    "myst_parser",
 ]
 
 intersphinx_mapping = {

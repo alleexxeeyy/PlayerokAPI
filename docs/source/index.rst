@@ -1,5 +1,3 @@
-.. include:: ../README.rst
-
 Добро пожаловать в документацию PlayerokAPI.
 ============================================
 
@@ -20,18 +18,26 @@
 
    usage
    examples
+   migration
 
 Классы и методы
 ---------------
 
 .. toctree::
-   :maxdepth: 3
-
-   account
-   
-.. toctree:: 
    :maxdepth: 2
 
+   client
+   dispatcher
+   models
+
+1.x (устаревшее, удаляется в 3.0)
+---------------------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   examples_legacy
+   account
    types
    enums
    exceptions

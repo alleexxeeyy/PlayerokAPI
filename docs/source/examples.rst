@@ -1,104 +1,95 @@
 Примеры использования
 =====================
 
-Здесь собраны примеры кода для демонстрации работы библиотеки.
-
 .. _quick_start:
 
 Быстрое начало
 --------------
 
-Пример простого бота, который будет отвечать на несложные команды
+Бот, который отвечает на несложные команды. Хендлеры вешаются декораторами на роутер, фильтры пишутся через ``F``.
 
 .. code-block:: python
 
+    import asyncio
     from datetime import datetime
 
-    from playerokapi.account import Account
-    from playerokapi.types import *
-    from playerokapi.enums import *
-    from playerokapi.listener.listener import EventListener
+    from playerokapi import Client, Dispatcher, Router, F, NewMessageEvent
 
-    # ----- ИНИЦИАЛИЗАЦИЯ АККАУНТА -----
-    acc = Account(
-        cookies="__ddg3=4L7yBmrBwMwKm15X;token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
-    ).get()
+    router = Router()
 
-    # ----- ЗАПУСК СЛУШАТЕЛЯ СОБЫТИЙ -----
-    listener = EventListener(acc)
 
-    for event in listener.listen():
-        if event.type is EventTypes.NEW_MESSAGE: # ловим тип ивента "Новое сообщение"
-            if event.message.user.id != acc.id: # проверяем, если это сообщение было отправлено не от своего же лица
-                if event.message.text == "!команды": # проверяем, если текст сообщение - нужная наша команда
-                    acc.send_message(
-                        chat_id=event.chat.id, 
-                        text="🤖 Доступные команды:\n- !привет - отправляет приветствие\n- !дата - показывает текущую дату и время"
-                    ) # отправляем сообщение
-                if event.message.text == "!привет":
-                    acc.send_message(
-                        chat_id=event.chat.id, 
-                        text="👋 Привет, я бот для Playerok!\n- Узнать команды - !команды"
-                    )
-                if event.message.text == "!дата":
-                    acc.send_message(
-                        chat_id=event.chat.id, 
-                        text=f"📅 Текущая дата: {datetime.now().strftime("%d/%m/%Y, %H:%M:%S")}"
-                    )
+    @router.new_message(F.message.text == "!команды")
+    async def on_commands(event: NewMessageEvent):
+        await event.answer("🤖 Доступные команды:\n- !привет - отправляет приветствие\n- !дата - показывает текущую дату и время")
 
-.. _create_and_publish_item:
 
-Создание и публикация предмета
-------------------------------
+    @router.new_message(F.message.text == "!привет")
+    async def on_hello(event: NewMessageEvent):
+        await event.answer("👋 Привет, я бот для Playerok!\n- Узнать команды - !команды")
 
-Пример кода, который создаст и опубликует предмет в приложении "Telegram", категории "Подарки (NFT)"
+
+    @router.new_message(F.message.text == "!дата")
+    async def on_date(event: NewMessageEvent):
+        await event.answer(f"📅 Текущая дата: {datetime.now().strftime('%d/%m/%Y, %H:%M:%S')}")
+
+
+    async def main():
+        async with Client(cookies="token=...; __ddg1_=...", user_agent="Mozilla/5.0 ...") as client:
+            dp = Dispatcher(client)
+            dp.include_router(router)
+            await dp.run()
+
+
+    asyncio.run(main())
+
+Свои сообщения в события не попадают, поэтому проверять ``event.message.user.id != client.id`` не нужно.
+
+Новая сделка
+------------
 
 .. code-block:: python
 
-    from playerokapi.account import Account
-    from playerokapi.types import *
-    from playerokapi.enums import *
+    from playerokapi import Client, NewDealEvent, DealStatus
 
 
-    # ----- ИНИЦИАЛИЗАЦИЯ АККАУНТА -----
-    acc = Account(
-        cookies="__ddg3=4L7yBmrBwMwKm15X;token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
-    ).get()
+    @router.new_deal()
+    async def on_new_deal(event: NewDealEvent, client: Client):
+        deal = event.deal
+        print(f"Новая сделка {deal.id}: {deal.item.name} за {deal.item.price} ₽ от {deal.user.username}")
+        await event.answer("Спасибо за покупку! Сейчас всё выдам.")
+        await client.update_deal(deal.id, DealStatus.SENT)
 
-    # ----- ПОЛУЧЕНИЕ ДАННЫХ О ТОВАРЕ -----
-    game = acc.get_game(slug="telegram") # получаем нужную игру
+В хендлер можно получить по имени параметра ``event``, ``client``, ``dispatcher``, ``router`` и всё, что положено в диспетчер:
+``dp["config"] = config`` → параметр ``config``.
 
-    _category = next((cat for cat in game.categories if cat.name == "Подарки (NFT)"), None) 
-    category = acc.get_game_category(_category.id) # получаем полные даные о категории
+События без роутеров
+--------------------
 
-    obt_list = acc.get_game_category_obtaining_types(category.id)
-    obt_type = next((obt for obt in obt_list.obtaining_types if obt.name == "Подарок"), None)
+.. code-block:: python
 
-    option = next((opt for opt in category.options if opt.value == "heart"), None)
-    # тут могут быть прочие опции...
+    async with Client(cookies="...") as client:
+        async for event in client.listen():
+            if isinstance(event, NewMessageEvent):
+                print(event.chat.id, event.message.text)
 
-    df_list = acc.get_game_category_data_fields(category.id, obt_type.id)
-    data_field = next((df for df in df_list.data_fields if df.label == "Комментарий"), None) # берём поле с обязательным данным (в этом случае только одно, чаще всего несколько необходимых)
-    data_field.value = "Напишу вам в ТГ после оформления заказа" # задаём значение этому полю, так как оно обязательное
-    # тут могут быть прочие обязательные поля с данными...
+Сообщения чата
+--------------
 
-    banner = "banner.png"
+.. code-block:: python
 
-    # ----- СОЗДАНИЕ ПРЕДМЕТА -----
-    item = acc.create_item(
-        game_category_id=category.id,                                    # указываем id категории игры
-        obtaining_type_id=obt_type.id,                                   # указываем id типа получения предмета
-        name='Подарок "❤️ Сердце" (13 ⭐) / Авто-Выдача 🤖',            # указываем название предмета
-        price=90,                                                        # указываем цену предмета
-        description="Выдача осуществляется без захода на ваш аккаунт.",  # указываем описание предмета
-        options=[option],                                                # указываем опции предмета
-        data_fields=[data_field],                                        # указываем поля с данными предмета
-        attachments=[banner]                                             # указываем файлы-приложения предмета (баннер и прочие изображения)
-    )
+    chat = await client.get_chat_by_username("LexeyLex")
+    page = await client.get_chat_messages(chat.id)
 
-    # ----- ПУБЛИКАЦИЯ ПРЕДМЕТА -----
-    statuses = acc.get_item_priority_statuses(item.id, item.price)
-    free_status = next((status for status in statuses if status.price == 0), None)
-    new_item = acc.publish_item(item.id, free_status.id)
+    for message in page.items:
+        print(message.created_at, message.text)
+
+Вызов из обычных потоков
+------------------------
+
+.. code-block:: python
+
+    from playerokapi import ThreadsafeClient
+
+    sync_client = ThreadsafeClient(client, asyncio.get_running_loop())
+    # в другом потоке:
+    chats = sync_client.get_chats()
