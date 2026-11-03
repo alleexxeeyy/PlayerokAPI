@@ -442,6 +442,7 @@ async def test_parallel_chats_keeps_order_inside_chat(fake_source):
 
 async def test_parallel_stop_cancels_hanging_handlers(fake_source):
     dp = Dispatcher(Client(token="t"), mode="parallel_chats")
+    dp.shutdown_timeout = 0.1
     cancelled = asyncio.Event()
 
     @dp.new_message()
@@ -501,3 +502,150 @@ def test_on_accepts_string_event_type():
     assert router.handlers[ev.EventType.NEW_DEAL][0].callback is h
     with pytest.raises(ValueError):
         router.on("SOMETHING")
+
+
+
+async def test_cancel_run_leaves_no_tasks(dp, fake_source):
+    before = asyncio.all_tasks()
+    run = asyncio.ensure_future(dp.run())
+    await wait_until(lambda: fake_source)
+    await asyncio.sleep(0.01)
+    run.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await run
+    await asyncio.sleep(0)
+    assert asyncio.all_tasks() - before - {run} == set()
+
+
+async def test_stop_leaves_no_tasks(dp, fake_source):
+    before = asyncio.all_tasks()
+    run = asyncio.ensure_future(dp.run())
+    await wait_until(lambda: fake_source)
+    dp.stop()
+    await asyncio.wait_for(run, 2)
+    await asyncio.sleep(0)
+    assert asyncio.all_tasks() - before - {run} == set()
+
+
+async def test_di_positional_only_kwargs_partial_callable(dp):
+    import functools
+    seen = {}
+    dp["plbot"] = "BOT"
+
+    @dp.new_message()
+    async def pos_only(event, plbot, /):
+        seen["pos"] = (event.message.text, plbot)
+
+    @dp.new_message()
+    async def msg_and_kwargs(msg, **kw):
+        seen["kw"] = (msg.message.text, "plbot" in kw)
+
+    async def with_prefix(prefix, event):
+        seen["partial"] = prefix + event.message.text
+
+    dp.new_message()(functools.partial(with_prefix, "> "))
+
+    class Callable:
+        async def __call__(self, event, client):
+            seen["callable"] = client is dp.client
+
+    dp.new_message()(Callable())
+
+    @dp.new_message()
+    async def with_default(flag=False):
+        seen["default"] = flag
+
+    await dp.feed_event(message_event("x"))
+    assert seen == {"pos": ("x", "BOT"), "kw": ("x", True), "partial": "> x", "callable": True, "default": False}
+
+
+async def test_error_handler_first_param_is_exception_and_error_is_logged(dp, caplog):
+    seen = []
+
+    @dp.new_message()
+    async def broken(event):
+        raise ValueError("ой")
+
+    @dp.error()
+    async def on_error(err):
+        seen.append(err)
+
+    with caplog.at_level(logging.ERROR, logger="playerokapi.dispatcher"):
+        await dp.feed_event(message_event())
+    assert len(seen) == 1 and isinstance(seen[0], ValueError)
+    assert any("broken" in r.getMessage() and "ой" in r.getMessage() for r in caplog.records)
+
+
+async def test_cancelled_error_inside_handler_does_not_stop_others(dp, fake_source, caplog):
+    calls = []
+
+    @dp.new_message()
+    async def awaits_cancelled(event):
+        task = asyncio.ensure_future(asyncio.sleep(10))
+        task.cancel()
+        await task
+
+    @dp.new_message()
+    async def next_handler(event):
+        calls.append(event.message.text)
+
+    run = asyncio.ensure_future(dp.run())
+    await wait_until(lambda: fake_source)
+    fake_source[0]._queue.put_nowait(message_event("1"))
+    fake_source[0]._queue.put_nowait(message_event("2"))
+    await wait_until(lambda: calls == ["1", "2"])
+    assert not run.done()
+    dp.stop()
+    await asyncio.wait_for(run, 2)
+
+
+async def test_stop_from_handler_in_parallel_lets_it_finish(fake_source):
+    dp = Dispatcher(Client(token="t"), mode="parallel_chats")
+    calls = []
+
+    @dp.new_message()
+    async def stopper(event, dispatcher):
+        dispatcher.stop()
+        await asyncio.sleep(0.05)
+        calls.append("finished")
+
+    @dp.new_message()
+    async def after(event):
+        calls.append("after")
+
+    run = asyncio.ensure_future(dp.run())
+    await wait_until(lambda: fake_source)
+    fake_source[0]._queue.put_nowait(message_event())
+    await asyncio.wait_for(run, 2)
+    assert calls == ["finished", "after"]
+
+
+async def test_events_without_chat_in_parallel(fake_source):
+    dp = Dispatcher(Client(token="t"), mode="parallel_chats")
+    seen = []
+
+    @dp.new_message()
+    async def handler(event):
+        seen.append(event.message.text)
+
+    run = asyncio.ensure_future(dp.run())
+    await wait_until(lambda: fake_source)
+    q = fake_source[0]._queue
+    q.put_nowait(ev.NewMessageEvent(m.ChatMessage(text="a"), m.Chat()))
+    q.put_nowait(ev.NewMessageEvent(m.ChatMessage(text="b"), m.Chat()))
+    await wait_until(lambda: seen == ["a", "b"])
+    dp.stop()
+    await asyncio.wait_for(run, 2)
+
+
+async def test_stop_from_another_thread(dp, fake_source):
+    import threading
+    run = asyncio.ensure_future(dp.run())
+    await wait_until(lambda: fake_source)
+    threading.Thread(target=dp.stop).start()
+    await asyncio.wait_for(run, 2)
+
+
+def test_dispatcher_is_not_iterable(dp):
+    with pytest.raises(TypeError):
+        list(dp)

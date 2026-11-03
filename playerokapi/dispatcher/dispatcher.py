@@ -18,6 +18,11 @@ logger = getLogger("playerokapi.dispatcher")
 RESERVED = frozenset({"event", "client", "dispatcher", "router", "exception", "handler_name"})
 
 
+def _cancelled_from_outside() -> bool:
+    task = asyncio.current_task()
+    return task is not None and task.cancelling() > 0
+
+
 class Dispatcher(Router):
     """
     Диспетчер: получает события Playerok и передаёт их хендлерам роутеров.
@@ -44,6 +49,10 @@ class Dispatcher(Router):
     :param context: Данные для хендлеров: параметр хендлера с таким именем получит значение.
     """
 
+    shutdown_timeout = 10
+    """ Сколько секунд при `stop()` ждать хендлеры, которые ещё работают в режиме `parallel_chats`, прежде чем отменить их. """
+    __iter__ = None
+
     def __init__(
         self,
         client: Client,
@@ -68,6 +77,7 @@ class Dispatcher(Router):
         self._chains: dict[str | None, asyncio.Task] = {}
         self._pending: set[asyncio.Task] = set()
         self._semaphore: asyncio.Semaphore | None = None
+        self._loop: asyncio.AbstractEventLoop | None = None
 
     def __getitem__(self, key: str) -> Any:
         return self.context[key]
@@ -119,6 +129,11 @@ class Dispatcher(Router):
             try:
                 if not await check_filter(flt, event):
                     return
+            except asyncio.CancelledError as e:
+                if _cancelled_from_outside():
+                    raise
+                await self._on_error(router, None, event, data, e)
+                return
             except Exception as e:
                 await self._on_error(router, None, event, data, e)
                 return
@@ -127,16 +142,25 @@ class Dispatcher(Router):
             if not self._attached(router):
                 return
             try:
-                if await handler.check(event):
+                if await handler.check(event) and self._attached(router):
                     await handler.call({**data, "router": router})
+            except asyncio.CancelledError as e:
+                # отменили не нас, а что-то внутри хендлера — это его ошибка, остальные хендлеры работают дальше
+                if _cancelled_from_outside():
+                    raise
+                await self._on_error(router, handler, event, data, e)
             except Exception as e:
                 await self._on_error(router, handler, event, data, e)
 
         for sub in list(router.sub_routers):
             await self._propagate(sub, event, data)
 
-    async def _on_error(self, router: Router, handler: Handler | None, event: BaseEvent, data: dict[str, Any], exc: Exception):
+    async def _on_error(self, router: Router, handler: Handler | None, event: BaseEvent, data: dict[str, Any], exc: BaseException):
         name = handler.name if handler else f"фильтр {router}"
+        logger.error(
+            f"Ошибка в {name} при обработке {event.type}: "
+            f"{''.join(traceback.format_exception(exc))}"
+        )
         error_data = {**data, "router": router, "exception": exc, "handler_name": name}
         node: Router | None = router
         while node is not None:
@@ -151,10 +175,6 @@ class Dispatcher(Router):
             if matched:
                 return
             node = node.parent
-        logger.error(
-            f"Ошибка в {name} при обработке {event.type}: "
-            f"{''.join(traceback.format_exception(exc))}"
-        )
 
     def _dispatch_parallel(self, event: BaseEvent):
         key = event.chat.id if getattr(event, "chat", None) is not None and event.chat.id else None
@@ -171,6 +191,8 @@ class Dispatcher(Router):
     async def _after(self, previous: asyncio.Task | None, event: BaseEvent):
         if previous is not None:
             await asyncio.wait({previous})
+            if not previous.cancelled():
+                previous.exception()
         if self._semaphore is None:
             await self.feed_event(event)
             return
@@ -191,38 +213,59 @@ class Dispatcher(Router):
         if self.running:
             raise RuntimeError("Диспетчер уже запущен")
         self._stop = asyncio.Event()
+        self._loop = asyncio.get_running_loop()
         self._semaphore = asyncio.Semaphore(self.max_concurrency) if self.max_concurrency else None
         self._source = EventSource(self.client, new_messages, new_reviews)
         stop_wait = asyncio.ensure_future(self._stop.wait())
+        get: asyncio.Future | None = None
+        stopped = False
         try:
             await self._source.start()
             while not self._stop.is_set():
                 get = asyncio.ensure_future(self._source._queue.get())
                 done, _ = await asyncio.wait({get, stop_wait}, return_when=asyncio.FIRST_COMPLETED)
                 if get not in done:
-                    get.cancel()
                     break
                 event = get.result()
+                get = None
                 if self.mode == "sequential":
                     await self.feed_event(event)
                 else:
                     self._dispatch_parallel(event)
+            stopped = True
         finally:
-            stop_wait.cancel()
-            pending = list(self._pending)
-            for task in pending:
-                task.cancel()
-            await asyncio.gather(*pending, return_exceptions=True)
-            self._chains.clear()
+            stop_event, self._stop = self._stop, None
             source, self._source = self._source, None
-            if source is not None:
-                await source.close()
-            self._stop = None
+            helpers = [f for f in (get, stop_wait) if f is not None]
+            try:
+                for f in helpers:
+                    f.cancel()
+                pending = list(self._pending)
+                if stopped and pending:
+                    # stop() — даём хендлерам доработать (в том числе тому, кто вызвал stop)
+                    await asyncio.wait(pending, timeout=self.shutdown_timeout)
+                for task in pending:
+                    task.cancel()
+                await asyncio.gather(*pending, *helpers, return_exceptions=True)
+                self._chains.clear()
+            finally:
+                if source is not None:
+                    await source.close()
 
     def stop(self):
         """
-        Останавливает диспетчер: `run()` завершится после текущего события
-        (в режиме `parallel_chats` незавершённые хендлеры отменяются).
+        Останавливает диспетчер: `run()` завершится после текущего события.
+        В режиме `parallel_chats` работающим хендлерам даётся `shutdown_timeout` секунд, потом они отменяются.
+        События, которые ещё не начали обрабатываться, отбрасываются. Можно вызывать из любого потока.
         """
-        if self._stop is not None:
-            self._stop.set()
+        stop_event, loop = self._stop, self._loop
+        if stop_event is None:
+            return
+        try:
+            running = asyncio.get_running_loop()
+        except RuntimeError:
+            running = None
+        if loop is None or running is loop:
+            stop_event.set()
+        else:
+            loop.call_soon_threadsafe(stop_event.set)

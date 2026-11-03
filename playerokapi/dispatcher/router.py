@@ -27,18 +27,27 @@ class Handler:
     Зарегистрированный хендлер события.
     """
 
-    def __init__(self, callback: Callable[..., Awaitable[Any] | Any], filters: tuple[Filter, ...], router: Router):
+    def __init__(
+        self,
+        callback: Callable[..., Awaitable[Any] | Any],
+        filters: tuple[Filter, ...],
+        router: Router,
+        fallback: str = "event"
+    ):
         self.callback = callback
         self.filters = filters
         self.router = router
+        self.fallback = fallback
         self.name = f"{getattr(callback, '__module__', '?')}.{getattr(callback, '__qualname__', repr(callback))}"
 
-        params = inspect.signature(callback).parameters
-        self._accepts_any = any(p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values())
-        self._params = [
-            p.name for p in params.values()
-            if p.kind in (inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY)
-        ]
+        params = list(inspect.signature(callback).parameters.values())
+        self._accepts_any = any(p.kind is inspect.Parameter.VAR_KEYWORD for p in params)
+        named = (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY)
+        self._params = [p.name for p in params if p.kind in named]
+        self._positional_only = [p.name for p in params if p.kind is inspect.Parameter.POSITIONAL_ONLY]
+        first = next((p for p in params if p.kind in named), None)
+        # первый параметр с незнакомым именем и без значения по умолчанию получает событие: async def handler(msg_event): ...
+        self._first_unknown = first.name if first is not None and first.default is inspect.Parameter.empty else None
 
     async def check(self, event: BaseEvent) -> bool:
         for flt in self.filters:
@@ -47,16 +56,16 @@ class Handler:
         return True
 
     def arguments(self, data: dict[str, Any]) -> dict[str, Any]:
-        if self._accepts_any:
-            return dict(data)
-        args = {name: data[name] for name in self._params if name in data}
-        # первый параметр с незнакомым именем получает само событие: async def handler(msg_event): ...
-        if self._params and self._params[0] not in data and "event" not in self._params:
-            args[self._params[0]] = data["event"]
+        args = dict(data) if self._accepts_any else {name: data[name] for name in self._params if name in data}
+        first = self._first_unknown
+        if first is not None and first not in data and self.fallback not in self._params:
+            args[first] = data[self.fallback]
         return args
 
     async def call(self, data: dict[str, Any]) -> Any:
-        result = self.callback(**self.arguments(data))
+        kwargs = self.arguments(data)
+        positional = [kwargs.pop(name) for name in self._positional_only if name in kwargs]
+        result = self.callback(*positional, **kwargs)
         if inspect.isawaitable(result):
             result = await result
         return result
@@ -78,6 +87,7 @@ class Router:
     (сначала хендлеры роутера, потом вложенных роутеров в порядке подключения).
     Параметры хендлера заполняются по имени: `event`, `client`, `dispatcher`, `router`
     и всё, что положено в диспетчер (`dp["plbot"] = bot` → параметр `plbot`).
+    Синхронные хендлеры тоже работают, но вызываются прямо в event loop — долгий блокирующий код в них останавливает обработку событий.
 
     :param name: Имя роутера (для логов), _опционально_.
     :type name: `str` or `None`
@@ -165,11 +175,12 @@ class Router:
     def error(self, *filters: Filter):
         """
         Декоратор хендлера ошибок этого роутера и вложенных в него.
-        Хендлер получает параметры по имени, в том числе `exception` и `handler_name`.
+        Хендлер получает параметры по имени, в том числе `exception` и `handler_name` (первый параметр с незнакомым именем — исключение).
+        Ошибку обрабатывают error-хендлеры ближайшего роутера, у которого они есть, — выше она не идёт. В лог она пишется всегда.
         """
 
         def decorator(callback):
-            self.error_handlers.append(Handler(callback, filters, self))
+            self.error_handlers.append(Handler(callback, filters, self, fallback="exception"))
             return callback
         return decorator
 
